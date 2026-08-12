@@ -1,0 +1,193 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { Modal } from "@/components/ui/Modal";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { Select } from "@/components/ui/Select";
+import { CheckboxChip } from "@/components/ui/Chip";
+import type { AdminUserPayload, Group, ProfileWithGroups, UserRole } from "@/lib/types";
+
+interface UserModalProps {
+  open: boolean;
+  /** null = create, otherwise edit. */
+  user: ProfileWithGroups | null;
+  groups: readonly Group[];
+  /** The signed-in admin, who may not demote themselves. */
+  currentUserId: string;
+  onClose: () => void;
+  onSubmit: (payload: AdminUserPayload) => Promise<string | null>;
+}
+
+const ROLE_OPTIONS = [
+  { value: "user", label: "Nutzer" },
+  { value: "admin", label: "Admin" },
+];
+
+export function UserModal({
+  open,
+  user,
+  groups,
+  currentUserId,
+  onClose,
+  onSubmit,
+}: UserModalProps) {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [role, setRole] = useState<UserRole>("user");
+  const [groupIds, setGroupIds] = useState<string[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [dirty, setDirty] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    setName(user?.name ?? "");
+    setEmail(user?.email ?? "");
+    setRole(user?.role ?? "user");
+    setGroupIds(user?.groups.map((group) => group.id) ?? []);
+    setError(null);
+    setDirty(false);
+  }, [open, user]);
+
+  const editingSelf = user?.id === currentUserId;
+
+  function handleClose() {
+    // Unsaved changes get one question, not a silent discard.
+    if (dirty && !window.confirm("Du hast ungespeicherte Änderungen. Willst du sie verwerfen?")) {
+      return;
+    }
+    onClose();
+  }
+
+  async function handleSubmit(event: React.FormEvent) {
+    event.preventDefault();
+
+    if (!name.trim()) {
+      setError("Bitte gib einen Namen ein.");
+      return;
+    }
+    if (!email.trim()) {
+      setError("Bitte gib eine E-Mail-Adresse ein.");
+      return;
+    }
+
+    setSaving(true);
+    setError(null);
+
+    const message = await onSubmit({
+      id: user?.id,
+      name: name.trim(),
+      email: email.trim(),
+      role,
+      groupIds,
+    });
+
+    setSaving(false);
+
+    if (message) {
+      setError(message);
+      return;
+    }
+
+    setDirty(false);
+    onClose();
+  }
+
+  return (
+    <Modal
+      open={open}
+      title={user ? "Nutzer bearbeiten" : "Nutzer erstellen"}
+      onClose={handleClose}
+      footer={
+        <>
+          <Button variant="neutral" onClick={handleClose} disabled={saving}>
+            Abbrechen
+          </Button>
+          <Button
+            type="submit"
+            form="user-form"
+            loading={saving}
+            loadingLabel="Wird gespeichert…"
+          >
+            Speichern
+          </Button>
+        </>
+      }
+    >
+      <form id="user-form" onSubmit={handleSubmit} noValidate>
+        <div className="grid gap-5 sm:grid-cols-2">
+          <Input
+            label="Name"
+            value={name}
+            placeholder="Vor- und Nachname"
+            onChange={(event) => {
+              setName(event.target.value);
+              setDirty(true);
+            }}
+          />
+          <Input
+            label="E-Mail Adresse"
+            type="email"
+            value={email}
+            placeholder="name@beispiel.de"
+            onChange={(event) => {
+              setEmail(event.target.value);
+              setDirty(true);
+            }}
+          />
+          <Select
+            label="Rolle"
+            value={role}
+            disabled={editingSelf}
+            options={ROLE_OPTIONS}
+            onChange={(event) => {
+              setRole(event.target.value as UserRole);
+              setDirty(true);
+            }}
+          />
+        </div>
+
+        {editingSelf && (
+          <p className="mt-3 text-[13px] text-text-2">
+            Du kannst dir die Admin-Rolle nicht selbst entziehen.
+          </p>
+        )}
+
+        <p className="mt-8 font-display text-[12px] uppercase tracking-[0.10em] text-text-2">
+          Zugewiesene Gruppen
+        </p>
+
+        {groups.length === 0 ? (
+          <p className="mt-3 text-[14px] text-text-3">
+            Noch keine Gruppen angelegt. Leg unter der Tabelle eine an.
+          </p>
+        ) : (
+          <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {groups.map((group) => (
+              <CheckboxChip
+                key={group.id}
+                label={group.name}
+                checked={groupIds.includes(group.id)}
+                onChange={(checked) => {
+                  setGroupIds((current) =>
+                    checked
+                      ? [...current, group.id]
+                      : current.filter((id) => id !== group.id),
+                  );
+                  setDirty(true);
+                }}
+              />
+            ))}
+          </div>
+        )}
+
+        {error && (
+          <p role="alert" className="mt-6 text-[14px] text-danger">
+            {error}
+          </p>
+        )}
+      </form>
+    </Modal>
+  );
+}

@@ -1,26 +1,217 @@
 @import "tailwindcss";
 
+/* ==========================================================================
+   Design tokens — §5.1. This file is the ONLY place raw colour values live.
+   Everything else references them through Tailwind utilities or var().
+   ========================================================================== */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #000000; /* page background, pure black */
+  --surface-1: #0b0b0b; /* panels, cards, nav, logout */
+  --surface-2: #131313; /* inputs, chips, row hover */
+  --surface-3: #16130f; /* active, gold-tinted surface */
+  --modal: #141414; /* modal card, one step lighter than panel */
+
+  --border: #262626; /* default border */
+  --border-soft: #1c1c1c; /* table row divider */
+  --border-gold: #3a332a; /* border on gold-tinted surfaces */
+
+  --gold: #c9973f; /* accent: buttons, table head, focus */
+  --gold-bright: #e0b45f; /* active nav text, hover */
+  --gold-dim: rgba(201, 151, 63, 0.1); /* chip fill, hover */
+  --gold-glow: rgba(201, 151, 63, 0.2); /* glow around nav + primary button */
+
+  --text-1: #f5f5f5; /* headings, values, primary text */
+  --text-2: #9b9b9b; /* body copy, inactive nav, secondary columns */
+  --text-3: #6b6b6b; /* placeholders, empty states */
+
+  --danger: #e5484d;
+  --danger-dim: rgba(229, 72, 77, 0.1);
+  --danger-border: rgba(229, 72, 77, 0.35);
+  --danger-hover: rgba(229, 72, 77, 0.16); /* danger button hover */
+  --danger-hover-strong: rgba(229, 72, 77, 0.18); /* danger icon button hover */
+
+  --focus-ring: rgba(201, 151, 63, 0.15); /* 3px ring on focus */
+  --gold-border-active: rgba(201, 151, 63, 0.35); /* active nav item */
+  --gold-border-chip: rgba(201, 151, 63, 0.45); /* selected checkbox chip */
+  --overlay: rgba(0, 0, 0, 0.72); /* modal overlay */
+
+  /* Component-level values that §6 pins to specific greys */
+  --input-bg: #0a0a0a;
+  --input-border: #2a2a2a;
+  --panel-border: #1f1f1f;
+  --row-hover: #0e0e0e;
+  --chip-border: #2e2e2e;
+  --btn-neutral-border: #3a3a3a;
+  --btn-icon-border: #333333;
+  --on-gold: #0b0b0b; /* text on a filled gold surface */
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg: var(--bg);
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-modal: var(--modal);
+
+  --color-border-default: var(--border);
+  --color-border-soft: var(--border-soft);
+  --color-border-gold: var(--border-gold);
+  --color-panel-border: var(--panel-border);
+  --color-input-border: var(--input-border);
+  --color-chip-border: var(--chip-border);
+  --color-row-hover: var(--row-hover);
+  --color-input-bg: var(--input-bg);
+
+  --color-gold: var(--gold);
+  --color-gold-bright: var(--gold-bright);
+  --color-gold-dim: var(--gold-dim);
+  --color-on-gold: var(--on-gold);
+
+  --color-text-1: var(--text-1);
+  --color-text-2: var(--text-2);
+  --color-text-3: var(--text-3);
+
+  --color-danger: var(--danger);
+  --color-danger-dim: var(--danger-dim);
+  --color-danger-border: var(--danger-border);
+
+  --font-display: var(--font-jost);
+  --font-sans: var(--font-inter);
+
+  /* Breakpoints — §8. sm/lg/xl already cover 640 / 1024 / 1280. */
+  --breakpoint-xs: 520px;
+  --breakpoint-nav: 720px;
+  --breakpoint-tbl: 900px;
+
+  /* Radii — §5.3 */
+  --radius-token-sm: 8px;
+  --radius-token-md: 10px;
+  --radius-token-lg: 12px;
+  --radius-token-xl: 16px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* ==========================================================================
+   Base
+   ========================================================================== */
+
+/* These live in @layer base on purpose: unlayered CSS outranks every layered
+   Tailwind utility, which would make `border-gold` and friends silently lose. */
+@layer base {
+  html,
+  body {
+    background-color: var(--bg);
+    /* Repeated on both elements so iOS overscroll never flashes white. */
+    color: var(--text-1);
+  }
+
+  body {
+    font-family: var(--font-inter), system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  * {
+    border-color: var(--border);
+  }
+
+  ::selection {
+    background: var(--gold-dim);
+    color: var(--gold-bright);
+  }
+
+  /* Focus is visible on every interactive element, keyboard included — §6.5 */
+  :where(a, button, input, select, textarea, [tabindex]):focus-visible {
+    outline: none;
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px var(--focus-ring);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ==========================================================================
+   Utilities
+   ========================================================================== */
+
+/* The single source of vertical rhythm between sections — §5.3.
+   Sections never add their own margins; this is the one rule. */
+.stack-sections > * + * {
+  margin-top: 32px;
+}
+
+@media (min-width: 900px) {
+  .stack-sections > * + * {
+    margin-top: 48px;
+  }
+}
+
+.content-shell {
+  width: 100%;
+  max-width: 1240px;
+  margin-inline: auto;
+  padding-inline: 16px;
+  padding-top: 104px;
+  padding-bottom: 112px;
+}
+
+@media (min-width: 640px) {
+  .content-shell {
+    padding-inline: 24px;
+  }
+}
+
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Number fields carry no spinners — §6.5 */
+.no-spinner::-webkit-outer-spin-button,
+.no-spinner::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  appearance: none;
+  margin: 0;
+}
+
+.no-spinner {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.break-anywhere {
+  overflow-wrap: anywhere;
+}
+
+/* The signature floating gold bar — §5.4 */
+.nav-glow {
+  box-shadow:
+    0 0 0 1px rgba(201, 151, 63, 0.06),
+    0 0 26px var(--gold-glow);
+}
+
+.gold-ghost-glow {
+  box-shadow: 0 0 18px rgba(201, 151, 63, 0.16);
+}
+
+.gold-ghost-glow:hover:not(:disabled) {
+  box-shadow: 0 0 18px rgba(201, 151, 63, 0.26);
+}
+
+/* §9 Zugänglichkeit — no transitions, no chart reveal */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
