@@ -48,7 +48,7 @@ export function Segmented<T extends string>({
       aria-label={label}
       className={cn(
         "no-scrollbar inline-flex max-w-full items-center gap-0 overflow-x-auto",
-        "rounded-[10px] border border-border-default bg-surface-2 p-1",
+        "rounded-[8px] border border-border-default bg-surface-2 p-1",
         className,
       )}
     >
@@ -67,8 +67,8 @@ export function Segmented<T extends string>({
             onClick={() => onChange(option.key)}
             onKeyDown={(event) => handleKeyDown(event, index)}
             className={cn(
-              "shrink-0 whitespace-nowrap rounded-[8px] px-[18px] py-2 font-display text-[13px]",
-              "transition-colors duration-[160ms] ease-out",
+              "shrink-0 whitespace-nowrap rounded-[4px] px-[16px] py-2 text-[13px]",
+              "transition-colors duration-[var(--dur)] ease-[var(--ease-ref)]",
               selected
                 ? "bg-gold font-semibold text-on-gold"
                 : "text-text-2 hover:text-text-1",

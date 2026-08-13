@@ -21,11 +21,11 @@ export function Toast({ message, detail, onDismiss }: ToastProps) {
     <div
       role="status"
       aria-live="polite"
-      className="fixed right-4 top-[84px] z-100 flex items-start gap-3 rounded-[10px] border border-border-gold bg-surface-1 px-4 py-3 sm:right-6"
+      className="fixed right-4 top-[84px] z-100 flex items-start gap-3 rounded-[8px] border border-border-gold bg-surface-1 px-4 py-3 sm:right-6"
     >
       <Check size={16} aria-hidden="true" className="mt-0.5 shrink-0 text-gold" />
       <div>
-        <p className="font-display text-[13px] uppercase tracking-[0.12em] text-text-1">
+        <p className="font-display text-[13px] uppercase tracking-[0.09em] text-text-1">
           {message}
         </p>
         {detail && <p className="mt-1 text-[13px] text-text-2">{detail}</p>}

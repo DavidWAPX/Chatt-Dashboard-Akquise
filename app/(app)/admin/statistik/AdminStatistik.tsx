@@ -141,14 +141,14 @@ export function AdminStatistik() {
         </div>
 
         <div className="mt-6 border-t border-border-default pt-6">
-          <p className="font-display text-[12px] uppercase tracking-[0.10em] text-text-2">
+          <p className="font-display text-[11px] font-medium uppercase tracking-[0.08em] text-gold">
             Team gesamt · {period.label}
           </p>
           <dl className="mt-3 grid grid-cols-2 gap-3">
             {METRICS.map((metric) => (
               <div key={metric.key}>
                 <dt className="text-[12px] text-text-3">{metric.label}</dt>
-                <dd className="font-display text-[18px] tnum text-text-1">
+                <dd className="font-display text-[17px] font-medium tnum text-text-1">
                   {formatNumber(teamTotals[metric.key])}
                 </dd>
               </div>
@@ -174,13 +174,13 @@ export function AdminStatistik() {
                       onClick={() => selectChatter(user.id)}
                       aria-current={active ? "true" : undefined}
                       className={cn(
-                        "w-full rounded-[10px] border-l-2 px-4 py-3 text-left transition-colors duration-[160ms]",
+                        "w-full rounded-[8px] border-l-2 px-4 py-3 text-left transition-colors duration-[var(--dur)] ease-[var(--ease-ref)]",
                         active
                           ? "border-l-gold bg-surface-3"
                           : "border-l-transparent hover:bg-surface-2",
                       )}
                     >
-                      <span className="block font-sans text-[15px] font-semibold text-text-1 break-anywhere">
+                      <span className="block font-sans text-[14px] font-medium text-text-1 break-anywhere">
                         {user.name}
                       </span>
                       <span className="mt-0.5 block text-[13px] text-text-2 break-anywhere">
@@ -235,7 +235,7 @@ export function AdminStatistik() {
             <button
               type="button"
               onClick={() => selectChatter(null)}
-              className="inline-flex items-center gap-2 self-start rounded-[8px] px-1 py-1 font-sans text-[14px] text-gold transition-colors duration-[160ms] hover:text-gold-bright"
+              className="inline-flex items-center gap-2 self-start rounded-[4px] px-1 py-1 font-sans text-[14px] text-gold transition-colors duration-[var(--dur)] ease-[var(--ease-ref)] hover:text-gold-bright"
             >
               <ChevronLeft size={16} aria-hidden="true" />
               Zurück zur Liste

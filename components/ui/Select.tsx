@@ -23,7 +23,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select
       <label
         htmlFor={selectId}
         className={cn(
-          "mb-2 block font-display text-[12px] font-normal uppercase tracking-[0.10em] text-text-2",
+          "mb-2 block font-display text-[12px] font-normal uppercase tracking-[0.05em] text-text-2",
           hideLabel && "sr-only",
         )}
       >
@@ -34,8 +34,8 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select
           ref={ref}
           id={selectId}
           className={cn(
-            "h-12 w-full appearance-none rounded-[10px] bg-input-bg border border-input-border pl-4 pr-11",
-            "text-[15px] text-text-1 transition-colors duration-[160ms] ease-out",
+            "h-12 w-full appearance-none rounded-[8px] bg-input-bg border border-input-border pl-4 pr-11",
+            "text-[15px] text-text-1 transition-colors duration-[var(--dur)] ease-[var(--ease-ref)]",
             "focus:outline-none focus:border-gold focus:shadow-[0_0_0_3px_var(--focus-ring)]",
             "disabled:opacity-45 disabled:cursor-not-allowed",
             className,

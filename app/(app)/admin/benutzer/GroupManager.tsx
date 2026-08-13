@@ -145,7 +145,7 @@ export function GroupManager({ groups, users, onChanged }: GroupManagerProps) {
           </>
         }
       >
-        <p className="text-[15px] text-text-2">
+        <p className="text-[14px] text-text-2">
           Willst du <strong className="text-text-1">{pendingDelete?.name}</strong> wirklich
           entfernen?{" "}
           {affectedCount === 0

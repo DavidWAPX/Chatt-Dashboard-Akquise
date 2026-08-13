@@ -106,13 +106,13 @@ export function Modal({
         aria-modal="true"
         aria-labelledby={titleId}
         className={cn(
-          "my-auto w-[calc(100vw-32px)] max-w-[840px] rounded-[16px] border border-input-border bg-modal p-5 tbl:p-8",
+          "my-auto w-[calc(100vw-32px)] max-w-[840px] rounded-[12px] border border-input-border bg-modal p-5 tbl:p-8",
           className,
         )}
       >
         <h2
           id={titleId}
-          className="font-display text-[18px] font-medium uppercase tracking-[0.10em] text-gold"
+          className="font-display text-[19px] font-bold uppercase tracking-[0.05em] text-gold"
         >
           {title}
         </h2>

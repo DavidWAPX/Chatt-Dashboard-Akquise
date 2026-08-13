@@ -123,7 +123,7 @@ export function CodeInput({ value, onChange, onComplete, disabled }: CodeInputPr
           onChange={(event) => handleChange(index, event.target.value)}
           onKeyDown={(event) => handleKeyDown(index, event)}
           onFocus={(event) => event.target.select()}
-          className="h-[60px] w-[44px] rounded-[10px] border border-input-border bg-input-bg text-center font-display text-[24px] text-text-1 transition-colors duration-[160ms] focus:border-gold focus:shadow-[0_0_0_3px_var(--focus-ring)] focus:outline-none disabled:opacity-45 xs:w-[52px]"
+          className="h-[60px] w-[44px] rounded-[8px] border border-input-border bg-input-bg text-center font-display text-[24px] text-text-1 transition-colors duration-[var(--dur)] ease-[var(--ease-ref)] focus:border-gold focus:shadow-[0_0_0_3px_var(--focus-ring)] focus:outline-none disabled:opacity-45 xs:w-[52px]"
         />
       ))}
     </div>

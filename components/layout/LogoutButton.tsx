@@ -35,9 +35,11 @@ export function LogoutButton() {
       className={cn(
         "fixed bottom-4 right-4 z-50 inline-flex items-center gap-[10px] sm:bottom-6 sm:right-6",
         "rounded-full border border-border-default bg-surface-1 px-[26px] py-[14px]",
-        "font-display text-[13px] uppercase tracking-[0.12em] text-text-1",
-        "transition-colors duration-[160ms] ease-out",
-        "enabled:hover:border-border-gold enabled:hover:bg-surface-2",
+        "font-display text-[13px] uppercase tracking-[0.09em] text-text-1",
+        "transition-all duration-[var(--dur)] ease-[var(--ease-ref)]",
+        // Logging out is a leaving action — the hover state says so in red.
+        "enabled:hover:border-danger-border enabled:hover:bg-transparent",
+        "enabled:hover:text-danger enabled:hover:shadow-[var(--danger-glow)]",
         "disabled:cursor-not-allowed disabled:opacity-45",
       )}
     >

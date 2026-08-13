@@ -92,14 +92,14 @@ export function LoginForm() {
   }
 
   return (
-    <div className="w-full max-w-[470px] rounded-[16px] border border-panel-border bg-surface-1 p-6 sm:p-10">
-      <h1 className="font-display text-[26px] font-semibold uppercase tracking-[0.06em] text-text-1 sm:text-[30px]">
+    <div className="w-full max-w-[470px] rounded-[12px] border border-panel-border bg-surface-1 p-6 sm:p-10">
+      <h1 className="font-display text-[24px] font-medium uppercase tracking-[0.48px] text-text-1">
         Remote Chatter
       </h1>
 
       {step === "email" ? (
         <>
-          <p className="mt-3 text-[15px] text-text-2">Melde dich mit deiner E-Mail an.</p>
+          <p className="mt-3 text-[14px] text-text-2">Melde dich mit deiner E-Mail an.</p>
 
           <form onSubmit={handleEmailSubmit} className="mt-8" noValidate>
             <Input
@@ -120,7 +120,7 @@ export function LoginForm() {
         </>
       ) : (
         <>
-          <p className="mt-3 text-[15px] text-text-2 break-anywhere">
+          <p className="mt-3 text-[14px] text-text-2 break-anywhere">
             Wir haben dir einen Code an <strong className="text-text-1">{email}</strong>{" "}
             geschickt.
           </p>
@@ -151,7 +151,7 @@ export function LoginForm() {
               type="button"
               disabled={secondsLeft > 0 || pending}
               onClick={() => requestCode(email.trim())}
-              className="rounded-[8px] px-2 py-1 font-sans text-[14px] text-gold transition-colors duration-[160ms] enabled:hover:text-gold-bright disabled:cursor-not-allowed disabled:text-text-3"
+              className="rounded-[4px] px-2 py-1 font-sans text-[14px] text-gold transition-colors duration-[var(--dur)] ease-[var(--ease-ref)] enabled:hover:text-gold-bright disabled:cursor-not-allowed disabled:text-text-3"
             >
               {secondsLeft > 0
                 ? `Code erneut senden (${secondsLeft} s)`
@@ -166,7 +166,7 @@ export function LoginForm() {
                 setCode("");
                 setError(null);
               }}
-              className="rounded-[8px] px-2 py-1 font-sans text-[14px] text-text-2 transition-colors duration-[160ms] enabled:hover:text-text-1"
+              className="rounded-[4px] px-2 py-1 font-sans text-[14px] text-text-2 transition-colors duration-[var(--dur)] ease-[var(--ease-ref)] enabled:hover:text-text-1"
             >
               E-Mail ändern
             </button>

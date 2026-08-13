@@ -1,50 +1,70 @@
 @import "tailwindcss";
 
 /* ==========================================================================
-   Design tokens — §5.1. This file is the ONLY place raw colour values live.
-   Everything else references them through Tailwind utilities or var().
+   Design tokens — read 1:1 out of the running reference app
+   (chatter.salesimplementor.de). These values replace the ones from §5.1,
+   which did not match the actual product. This file is the ONLY place raw
+   colour values live.
    ========================================================================== */
 
 :root {
-  --bg: #000000; /* page background, pure black */
-  --surface-1: #0b0b0b; /* panels, cards, nav, logout */
-  --surface-2: #131313; /* inputs, chips, row hover */
-  --surface-3: #16130f; /* active, gold-tinted surface */
-  --modal: #141414; /* modal card, one step lighter than panel */
+  --bg: #000000; /* --background */
+  --surface-1: #0a0a0a; /* --surface: panels, cards, nav, inputs */
+  --surface-2: #141414; /* --surface-hover */
+  --surface-3: #9473371a; /* --surface-highlight: gold 10 % */
+  --modal: #141414;
 
-  --border: #262626; /* default border */
-  --border-soft: #1c1c1c; /* table row divider */
-  --border-gold: #3a332a; /* border on gold-tinted surfaces */
+  --border: #ffffff1a; /* --border: white 10 % */
+  --border-soft: #ffffff0d; /* row dividers — half the default border */
+  --border-gold: #94733766; /* --border-gold: gold 40 % */
 
-  --gold: #c9973f; /* accent: buttons, table head, focus */
-  --gold-bright: #e0b45f; /* active nav text, hover */
-  --gold-dim: rgba(201, 151, 63, 0.1); /* chip fill, hover */
-  --gold-glow: rgba(201, 151, 63, 0.2); /* glow around nav + primary button */
+  --gold: #947337; /* --accent */
+  --gold-bright: #b68f44; /* --accent-hover */
+  --gold-dim: #94733726; /* --accent-light: gold 15 % */
+  --gold-glow: #94733740; /* from --shadow-glow */
 
-  --text-1: #f5f5f5; /* headings, values, primary text */
-  --text-2: #9b9b9b; /* body copy, inactive nav, secondary columns */
-  --text-3: #6b6b6b; /* placeholders, empty states */
+  --text-1: #ffffff; /* --text-primary */
+  --text-2: #ffffffa6; /* --text-secondary: white 65 % */
+  --text-3: #ffffff66; /* --text-tertiary: white 40 % */
 
-  --danger: #e5484d;
-  --danger-dim: rgba(229, 72, 77, 0.1);
-  --danger-border: rgba(229, 72, 77, 0.35);
-  --danger-hover: rgba(229, 72, 77, 0.16); /* danger button hover */
-  --danger-hover-strong: rgba(229, 72, 77, 0.18); /* danger icon button hover */
+  --danger: #cf6679; /* --danger */
+  --danger-dim: #cf667926;
+  --danger-border: #cf667966;
+  --danger-hover: #cf667933;
+  --danger-hover-strong: #cf66793d;
 
-  --focus-ring: rgba(201, 151, 63, 0.15); /* 3px ring on focus */
-  --gold-border-active: rgba(201, 151, 63, 0.35); /* active nav item */
-  --gold-border-chip: rgba(201, 151, 63, 0.45); /* selected checkbox chip */
-  --overlay: rgba(0, 0, 0, 0.72); /* modal overlay */
+  --nav-inactive: #ffffffa6; /* nav label at rest */
+  --nav-hover: #141414; /* --surface-hover under a hovered nav item */
 
-  /* Component-level values that §6 pins to specific greys */
+  --focus-ring: #94733740;
+  --gold-border-active: #94733766;
+  --gold-border-chip: #94733766;
+  --overlay: rgba(0, 0, 0, 0.72);
+
+  /* Component-level aliases, all pointing at the reference values */
   --input-bg: #0a0a0a;
-  --input-border: #2a2a2a;
-  --panel-border: #1f1f1f;
-  --row-hover: #0e0e0e;
-  --chip-border: #2e2e2e;
-  --btn-neutral-border: #3a3a3a;
-  --btn-icon-border: #333333;
-  --on-gold: #0b0b0b; /* text on a filled gold surface */
+  --input-border: #ffffff1a;
+  --panel-border: #ffffff1a;
+  --row-hover: #141414;
+  --chip-border: #ffffff1a;
+  --btn-neutral-border: #ffffff1a;
+  --btn-icon-border: #ffffff1a;
+  --on-gold: #000000; /* text on a filled gold surface */
+
+  /* Elevation and motion — straight from the reference */
+  --shadow-sm: 0 1px 2px 0 #00000080;
+  --shadow-md:
+    0 4px 12px #94733714,
+    0 2px 4px #00000080;
+  --shadow-lg:
+    0 10px 25px #9473371f,
+    0 4px 10px #00000080;
+  --shadow-glow: 0 0 15px #94733740;
+  --danger-glow: 0 0 15px #cf667940;
+  --ease-ref: cubic-bezier(0.16, 1, 0.3, 1);
+  /* One duration for every hover response: quick enough to feel instant,
+     long enough not to snap. */
+  --dur: 200ms;
 }
 
 @theme inline {
@@ -76,7 +96,9 @@
   --color-danger-dim: var(--danger-dim);
   --color-danger-border: var(--danger-border);
 
-  --font-display: var(--font-jost);
+  /* Outfit carries the uppercase display text, Inter everything else —
+     the same split the reference app uses. */
+  --font-display: var(--font-outfit);
   --font-sans: var(--font-inter);
 
   /* Breakpoints — §8. sm/lg/xl already cover 640 / 1024 / 1280. */
@@ -84,11 +106,10 @@
   --breakpoint-nav: 720px;
   --breakpoint-tbl: 900px;
 
-  /* Radii — §5.3 */
-  --radius-token-sm: 8px;
-  --radius-token-md: 10px;
+  /* Radii — reference: --radius-sm/md/lg */
+  --radius-token-sm: 4px;
+  --radius-token-md: 8px;
   --radius-token-lg: 12px;
-  --radius-token-xl: 16px;
 }
 
 /* ==========================================================================
@@ -126,6 +147,34 @@
     border-color: var(--gold);
     box-shadow: 0 0 0 3px var(--focus-ring);
   }
+
+  /* Anything clickable says so. <button> defaults to cursor:default in every
+     browser, which makes controls feel dead — this is the fix. */
+  :where(button, [role="tab"], [role="button"], summary, select, a[href]) {
+    cursor: pointer;
+  }
+
+  :where(button, [role="tab"], select):disabled,
+  :where(button, [role="tab"], select)[aria-disabled="true"] {
+    cursor: not-allowed;
+  }
+
+  /* A label wrapping a checkbox is a click target too. */
+  :where(label):has(input[type="checkbox"]:not(:disabled)) {
+    cursor: pointer;
+  }
+
+  :where(label):has(input[type="checkbox"]:disabled) {
+    cursor: not-allowed;
+  }
+
+  /* One consistent hover response across the whole app, so nothing feels
+     jumpier than anything else. */
+  :where(a, button, input, select, textarea, label, [role="tab"], [tabindex]) {
+    transition-property: color, background-color, border-color, box-shadow, opacity;
+    transition-duration: var(--dur);
+    transition-timing-function: var(--ease-ref);
+  }
 }
 
 /* ==========================================================================
@@ -149,7 +198,8 @@
   max-width: 1240px;
   margin-inline: auto;
   padding-inline: 16px;
-  padding-top: 104px;
+  /* Nav is 54px tall at top:16px, so 102px leaves a clean 32px gap below it. */
+  padding-top: 102px;
   padding-bottom: 112px;
 }
 
@@ -189,19 +239,22 @@
   overflow-wrap: anywhere;
 }
 
-/* The signature floating gold bar — §5.4 */
+/* The floating bar — reference --shadow-glow, no invented layers. */
 .nav-glow {
-  box-shadow:
-    0 0 0 1px rgba(201, 151, 63, 0.06),
-    0 0 26px var(--gold-glow);
+  box-shadow: var(--shadow-glow);
+}
+
+/* Active nav item: one flat gold-tinted surface, no gradient. */
+.nav-item-active {
+  background-color: var(--surface-3);
 }
 
 .gold-ghost-glow {
-  box-shadow: 0 0 18px rgba(201, 151, 63, 0.16);
+  box-shadow: none;
 }
 
 .gold-ghost-glow:hover:not(:disabled) {
-  box-shadow: 0 0 18px rgba(201, 151, 63, 0.26);
+  box-shadow: var(--shadow-glow);
 }
 
 /* §9 Zugänglichkeit — no transitions, no chart reveal */

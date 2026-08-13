@@ -6,8 +6,8 @@ import { Search } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 const FIELD =
-  "h-12 w-full rounded-[10px] bg-input-bg border border-input-border px-4 text-[15px] text-text-1 " +
-  "placeholder:text-text-3 transition-colors duration-[160ms] ease-out " +
+  "h-[47px] w-full rounded-[4px] bg-input-bg border border-input-border px-[19.2px] text-[15.2px] text-text-1 " +
+  "placeholder:text-text-3 transition-all duration-[var(--dur)] ease-[var(--ease-ref)] " +
   "focus:outline-none focus:border-gold focus:shadow-[0_0_0_3px_var(--focus-ring)] " +
   "disabled:opacity-45 disabled:cursor-not-allowed";
 
@@ -34,7 +34,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
       <label
         htmlFor={inputId}
         className={cn(
-          "mb-2 block font-sans text-[13px] font-semibold text-text-1",
+          "mb-2 block font-sans text-[14px] font-medium text-text-1",
           hideLabel && "sr-only",
         )}
       >
@@ -82,7 +82,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
       <div className="w-full">
         <label
           htmlFor={inputId}
-          className="mb-2 block font-display text-[12px] font-normal uppercase tracking-[0.10em] text-text-2"
+          className="mb-2 block font-display text-[12px] font-normal uppercase tracking-[0.05em] text-text-2"
         >
           {label}
         </label>

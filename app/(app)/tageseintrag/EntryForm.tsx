@@ -177,7 +177,7 @@ export function EntryForm({ profileId }: { profileId: string }) {
           </div>
 
           {existing && !loading && (
-            <p className="mt-6 flex items-start gap-3 rounded-[10px] border border-border-gold bg-surface-3 px-4 py-3 text-[14px] text-text-2">
+            <p className="mt-6 flex items-start gap-3 rounded-[8px] border border-border-gold bg-surface-3 px-4 py-3 text-[14px] text-text-2">
               <Info size={16} aria-hidden="true" className="mt-0.5 shrink-0 text-gold" />
               Für diesen Tag und diese Plattform ist bereits ein Eintrag vorhanden.
               Speichern überschreibt ihn.
@@ -230,7 +230,7 @@ export function EntryForm({ profileId }: { profileId: string }) {
         Deine Zahlen findest du unter{" "}
         <Link
           href="/"
-          className="rounded-[8px] text-gold transition-colors duration-[160ms] hover:text-gold-bright"
+          className="rounded-[4px] text-gold transition-colors duration-[var(--dur)] ease-[var(--ease-ref)] hover:text-gold-bright"
         >
           Statistik
         </Link>

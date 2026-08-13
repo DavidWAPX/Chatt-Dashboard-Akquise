@@ -154,7 +154,7 @@ export function UserModal({
           </p>
         )}
 
-        <p className="mt-8 font-display text-[12px] uppercase tracking-[0.10em] text-text-2">
+        <p className="mt-8 font-display text-[12px] uppercase tracking-[0.05em] text-text-2">
           Zugewiesene Gruppen
         </p>
 

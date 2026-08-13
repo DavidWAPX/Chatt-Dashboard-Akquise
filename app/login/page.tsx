@@ -19,11 +19,11 @@ export default async function LoginPage() {
       {configured ? (
         <LoginForm />
       ) : (
-        <div className="w-full max-w-[470px] rounded-[16px] border border-panel-border bg-surface-1 p-6 sm:p-10">
-          <h1 className="font-display text-[26px] font-semibold uppercase tracking-[0.06em] text-text-1 sm:text-[30px]">
+        <div className="w-full max-w-[470px] rounded-[12px] border border-panel-border bg-surface-1 p-6 sm:p-10">
+          <h1 className="font-display text-[24px] font-medium uppercase tracking-[0.48px] text-text-1">
             Remote Chatter
           </h1>
-          <p className="mt-3 text-[15px] text-text-2 break-anywhere">
+          <p className="mt-3 text-[14px] text-text-2 break-anywhere">
             Die Supabase-Zugangsdaten fehlen noch. Trag{" "}
             <code className="text-text-1">NEXT_PUBLIC_SUPABASE_URL</code> und{" "}
             <code className="text-text-1">NEXT_PUBLIC_SUPABASE_ANON_KEY</code> in{" "}

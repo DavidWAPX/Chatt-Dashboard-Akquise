@@ -51,7 +51,7 @@ export function Table<T>({ columns, rows, rowKey, empty, caption }: TableProps<T
                 key={column.key}
                 scope="col"
                 className={cn(
-                  "pb-[14px] font-display text-[11px] font-medium uppercase tracking-[0.12em] text-gold",
+                  "pb-[14px] font-display text-[11px] font-semibold uppercase tracking-[0.09em] text-gold",
                   column.align === "right" ? "text-right" : "text-left",
                 )}
               >
@@ -64,7 +64,7 @@ export function Table<T>({ columns, rows, rowKey, empty, caption }: TableProps<T
           {rows.map((row) => (
             <tr
               key={rowKey(row)}
-              className="border-b border-border-soft transition-colors duration-[160ms] last:border-b-0 hover:bg-row-hover"
+              className="border-b border-border-soft transition-colors duration-[var(--dur)] ease-[var(--ease-ref)] last:border-b-0 hover:bg-row-hover"
             >
               {columns.map((column) => (
                 <td
@@ -106,7 +106,7 @@ export function Table<T>({ columns, rows, rowKey, empty, caption }: TableProps<T
                   key={column.key}
                   className="flex items-baseline justify-between gap-4"
                 >
-                  <dt className="shrink-0 font-display text-[11px] uppercase tracking-[0.12em] text-gold">
+                  <dt className="shrink-0 font-display text-[11px] uppercase tracking-[0.09em] text-gold">
                     {column.head}
                   </dt>
                   <dd

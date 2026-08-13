@@ -1,18 +1,20 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Jost } from "next/font/google";
+import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
 
-const jost = Jost({
+/* The reference app pairs Inter for body copy with Outfit for the uppercase
+   display text — same split here. */
+const inter = Inter({
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  variable: "--font-jost",
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-inter",
   display: "swap",
 });
 
-const inter = Inter({
+const outfit = Outfit({
   subsets: ["latin"],
   weight: ["400", "500", "600"],
-  variable: "--font-inter",
+  variable: "--font-outfit",
   display: "swap",
 });
 
@@ -31,7 +33,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="de" className={`${jost.variable} ${inter.variable}`}>
+    <html lang="de" className={`${inter.variable} ${outfit.variable}`}>
       <body>{children}</body>
     </html>
   );

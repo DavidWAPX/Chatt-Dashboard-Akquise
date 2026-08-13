@@ -25,8 +25,8 @@ export function PillNav({ role }: { role: UserRole }) {
     <nav
       aria-label="Hauptnavigation"
       className={cn(
-        "nav-glow fixed left-1/2 top-4 z-50 h-14 -translate-x-1/2",
-        "flex max-w-[calc(100vw-32px)] items-center gap-1 overflow-hidden",
+        "nav-glow fixed left-1/2 top-4 z-50 h-[54px] -translate-x-1/2",
+        "flex max-w-[calc(100vw-32px)] items-center gap-0.5 overflow-hidden",
         "rounded-full border border-border-gold bg-surface-1 p-1.5",
       )}
     >
@@ -42,12 +42,14 @@ export function PillNav({ role }: { role: UserRole }) {
             aria-current={active ? "page" : undefined}
             aria-label={item.label}
             className={cn(
-              "flex h-11 shrink-0 items-center justify-center gap-[10px] rounded-full border",
-              "px-4 font-display text-[15px] tracking-[0.01em] xs:px-[22px]",
-              "transition-colors duration-[160ms] ease-out",
+              "flex h-[42px] shrink-0 items-center justify-center gap-2.5 rounded-full",
+              "px-3.5 text-[15px] font-medium tracking-normal xs:px-5",
+              "transition-colors duration-[var(--dur)] ease-[var(--ease-ref)]",
+              // Three distinct states: gold wash when active, a raised neutral
+              // surface on hover, plain bright label at rest.
               active
-                ? "border-[var(--gold-border-active)] bg-surface-3 text-gold-bright"
-                : "border-transparent text-text-2 hover:text-text-1",
+                ? "nav-item-active text-gold-bright"
+                : "text-[var(--nav-inactive)] hover:bg-[var(--nav-hover)] hover:text-text-1",
             )}
           >
             <Icon size={18} aria-hidden="true" className="shrink-0" />

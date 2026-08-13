@@ -17,7 +17,7 @@ export function Chip({ children, onRemove, removeLabel, className }: ChipProps) 
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-2 rounded-[10px] border border-chip-border bg-surface-2",
+        "inline-flex items-center gap-2 rounded-[8px] border border-chip-border bg-surface-2",
         "px-[14px] py-1.5 text-[12px] text-text-2",
         className,
       )}
@@ -29,7 +29,7 @@ export function Chip({ children, onRemove, removeLabel, className }: ChipProps) 
           onClick={onRemove}
           aria-label={removeLabel ?? "Entfernen"}
           title={removeLabel ?? "Entfernen"}
-          className="-mr-1 inline-flex h-5 w-5 items-center justify-center rounded-full text-text-3 transition-colors duration-[160ms] hover:text-danger"
+          className="-mr-1 inline-flex h-5 w-5 items-center justify-center rounded-full text-text-3 transition-colors duration-[var(--dur)] ease-[var(--ease-ref)] hover:text-danger"
         >
           <X size={13} aria-hidden="true" />
         </button>
@@ -59,8 +59,8 @@ export function CheckboxChip({
   return (
     <label
       className={cn(
-        "flex cursor-pointer items-center gap-3 rounded-[10px] border px-4 py-[14px]",
-        "transition-colors duration-[160ms] ease-out",
+        "flex cursor-pointer items-center gap-3 rounded-[8px] border px-4 py-[14px]",
+        "transition-colors duration-[var(--dur)] ease-[var(--ease-ref)]",
         "focus-within:border-gold focus-within:shadow-[0_0_0_3px_var(--focus-ring)]",
         checked
           ? "border-[var(--gold-border-chip)] bg-gold-dim text-gold"
@@ -78,7 +78,7 @@ export function CheckboxChip({
       <span
         aria-hidden="true"
         className={cn(
-          "inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-[6px] border",
+          "inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-[4px] border",
           checked ? "border-gold bg-gold" : "border-border-default bg-transparent",
         )}
       >

@@ -12,6 +12,8 @@ import { Select } from "@/components/ui/Select";
 import { Button, IconButton } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { VerlaufsDiagramm } from "./VerlaufsDiagramm";
+import { Trichter } from "./Trichter";
+import { QuotenRinge } from "./QuotenRinge";
 import { createClient } from "@/lib/supabase/client";
 import {
   METRICS,
@@ -27,6 +29,7 @@ import {
   RANGES,
   canGoForward,
   formatDateLabel,
+  getBuckets,
   getPeriod,
   isRangeKey,
   parseAnchor,
@@ -61,11 +64,16 @@ export function Auswertung({ profileId, heading }: AuswertungProps) {
   const rangeParam = searchParams.get("range");
   const platformParam = searchParams.get("platform");
   const range = isRangeKey(rangeParam) ? rangeParam : "day";
-  const platform: Platform | "all" = isPlatform(platformParam) ? platformParam : "all";
+  const platform: Platform | "all" = isPlatform(platformParam)
+    ? platformParam
+    : "all";
   const anchor = parseAnchor(searchParams.get("date"));
 
   const period = useMemo(() => getPeriod(range, anchor), [range, anchor]);
-  const previous = useMemo(() => previousPeriod(range, anchor), [range, anchor]);
+  const previous = useMemo(
+    () => previousPeriod(range, anchor),
+    [range, anchor],
+  );
 
   const [entries, setEntries] = useState<Entry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -126,7 +134,9 @@ export function Auswertung({ profileId, heading }: AuswertungProps) {
   const currentEntries = useMemo(
     () =>
       filterByPlatform(entries, platform).filter(
-        (entry) => entry.entry_date >= period.startISO && entry.entry_date <= period.endISO,
+        (entry) =>
+          entry.entry_date >= period.startISO &&
+          entry.entry_date <= period.endISO,
       ),
     [entries, platform, period.startISO, period.endISO],
   );
@@ -135,15 +145,44 @@ export function Auswertung({ profileId, heading }: AuswertungProps) {
     () =>
       filterByPlatform(entries, platform).filter(
         (entry) =>
-          entry.entry_date >= previous.startISO && entry.entry_date <= previous.endISO,
+          entry.entry_date >= previous.startISO &&
+          entry.entry_date <= previous.endISO,
       ),
     [entries, platform, previous.startISO, previous.endISO],
   );
 
   const totals = useMemo(() => sumMetrics(currentEntries), [currentEntries]);
-  const previousTotals = useMemo(() => sumMetrics(previousEntries), [previousEntries]);
+  const previousTotals = useMemo(
+    () => sumMetrics(previousEntries),
+    [previousEntries],
+  );
 
   const forwardAllowed = canGoForward(range, anchor);
+
+  /**
+   * One value per bucket per metric — the shape behind each KPI tile.
+   * The day view has no time axis, so the tiles carry no sparkline there.
+   */
+  const seriesByMetric = useMemo(() => {
+    if (range === "day") return null;
+
+    const buckets = getBuckets(range, period);
+    return METRICS.reduce(
+      (acc, metric) => ({
+        ...acc,
+        [metric.key]: buckets.map((bucket) =>
+          currentEntries
+            .filter(
+              (entry) =>
+                entry.entry_date >= bucket.startISO &&
+                entry.entry_date <= bucket.endISO,
+            )
+            .reduce((sum, entry) => sum + entry[metric.key], 0),
+        ),
+      }),
+      {} as Record<MetricKey, number[]>,
+    );
+  }, [range, period, currentEntries]);
 
   const columns: ReadonlyArray<Column<Entry>> = [
     {
@@ -151,7 +190,7 @@ export function Auswertung({ profileId, heading }: AuswertungProps) {
       head: "Datum",
       isTitle: true,
       cell: (row) => (
-        <span className="font-sans text-[15px] font-semibold tnum text-text-1">
+        <span className="font-sans text-[14px] font-medium tnum text-text-1">
           {formatDateLabel(row.entry_date)}
         </span>
       ),
@@ -166,7 +205,12 @@ export function Auswertung({ profileId, heading }: AuswertungProps) {
       head: metric.short,
       align: "right" as const,
       cell: (row: Entry) => (
-        <span className="text-[14px] text-text-2">{formatNumber(row[metric.key])}</span>
+        <span
+          className="text-[14px] tnum text-text-2"
+          title={metric.label}
+        >
+          {formatNumber(row[metric.key])}
+        </span>
       ),
     })),
   ];
@@ -174,69 +218,68 @@ export function Auswertung({ profileId, heading }: AuswertungProps) {
   return (
     <>
       {heading && (
-        <h2 className="font-display text-[22px] font-medium uppercase tracking-[0.08em] text-text-1 break-anywhere">
+        <h2 className="font-display text-[19px] font-medium uppercase tracking-[0.05em] text-text-1 break-anywhere">
           {heading}
         </h2>
       )}
 
-      <Panel>
-        <div className="flex flex-col gap-6">
-          <div className="flex flex-col gap-5 tbl:flex-row tbl:items-start tbl:justify-between">
-            <div>
-              <p className="mb-2 font-display text-[12px] uppercase tracking-[0.10em] text-text-2">
-                Zeitraum
-              </p>
-              <Segmented
-                label="Zeitraum"
-                value={range}
-                onChange={(next) => setParam({ range: next })}
-                options={RANGES.map((r) => ({ key: r.key, label: r.label }))}
-              />
-            </div>
-
-            <div>
-              <p className="mb-2 font-display text-[12px] uppercase tracking-[0.10em] text-text-2">
-                Plattform
-              </p>
-              <Segmented
-                label="Plattform"
-                value={platform}
-                onChange={(next) => setParam({ platform: next })}
-                options={PLATFORM_OPTIONS}
-              />
-            </div>
+      {/* Filters sit directly on the page — no box around them. */}
+      <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="shrink-0 text-[14px] font-normal text-text-2">Zeitraum:</span>
+            <Segmented
+              label="Zeitraum"
+              value={range}
+              onChange={(next) => setParam({ range: next })}
+              options={RANGES.map((r) => ({ key: r.key, label: r.label }))}
+            />
           </div>
 
-          <div className="flex items-center justify-center gap-4">
-            <IconButton
-              label="Vorherige Periode"
-              onClick={() => setParam({ date: toISODate(shiftAnchor(range, anchor, -1)) })}
-            >
-              <ChevronLeft size={16} aria-hidden="true" />
-            </IconButton>
-
-            <p
-              aria-live="polite"
-              className="min-w-0 text-center font-display text-[15px] tracking-[0.02em] text-text-1"
-            >
-              {period.label}
-            </p>
-
-            <IconButton
-              label="Nächste Periode"
-              disabled={!forwardAllowed}
-              title={
-                forwardAllowed
-                  ? "Nächste Periode"
-                  : "Weiter geht es nicht — das ist die aktuelle Periode."
-              }
-              onClick={() => setParam({ date: toISODate(shiftAnchor(range, anchor, 1)) })}
-            >
-              <ChevronRight size={16} aria-hidden="true" />
-            </IconButton>
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="shrink-0 text-[14px] font-normal text-text-2">Plattform:</span>
+            <Segmented
+              label="Plattform"
+              value={platform}
+              onChange={(next) => setParam({ platform: next })}
+              options={PLATFORM_OPTIONS}
+            />
           </div>
         </div>
-      </Panel>
+
+        <div className="flex items-center justify-center gap-4">
+          <IconButton
+            label="Vorherige Periode"
+            onClick={() =>
+              setParam({ date: toISODate(shiftAnchor(range, anchor, -1)) })
+            }
+          >
+            <ChevronLeft size={16} aria-hidden="true" />
+          </IconButton>
+
+          <p
+            aria-live="polite"
+            className="min-w-0 text-center text-[15px] font-medium tracking-[0.01em] text-text-1"
+          >
+            {period.label}
+          </p>
+
+          <IconButton
+            label="Nächste Periode"
+            disabled={!forwardAllowed}
+            title={
+              forwardAllowed
+                ? "Nächste Periode"
+                : "Weiter geht es nicht — das ist die aktuelle Periode."
+            }
+            onClick={() =>
+              setParam({ date: toISODate(shiftAnchor(range, anchor, 1)) })
+            }
+          >
+            <ChevronRight size={16} aria-hidden="true" />
+          </IconButton>
+        </div>
+      </div>
 
       {error && (
         <p role="alert" className="text-[14px] text-danger">
@@ -251,26 +294,53 @@ export function Auswertung({ profileId, heading }: AuswertungProps) {
             label={metric.label}
             value={totals[metric.key]}
             delta={totals[metric.key] - previousTotals[metric.key]}
-            deltaPercent={percentChange(totals[metric.key], previousTotals[metric.key])}
+            deltaPercent={percentChange(
+              totals[metric.key],
+              previousTotals[metric.key],
+            )}
+            series={seriesByMetric?.[metric.key]}
           />
         ))}
       </div>
 
-      <Panel eyebrow={period.label} title="Verlauf">
+      <Panel bare eyebrow={period.label} title="Trichter">
+        <p className="-mt-2 mb-6 max-w-[62ch] text-[14px] text-text-2">
+          Wie viel von der Kaltakquise am Ende übrig bleibt — vom Opener bis zur
+          qualifizierten Person.
+        </p>
+        {loading ? (
+          <EmptyState>Zahlen werden geladen…</EmptyState>
+        ) : (
+          <div className="flex flex-col gap-8">
+            <Trichter totals={totals} />
+            <QuotenRinge totals={totals} />
+          </div>
+        )}
+      </Panel>
+
+      <Panel bare eyebrow={period.label} title="Verlauf">
         <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:max-w-[560px]">
           <Select
             label="Kennzahl 1"
             value={metricA}
             onChange={(event) => setMetricA(event.target.value as MetricKey)}
-            options={METRICS.map((metric) => ({ value: metric.key, label: metric.label }))}
+            options={METRICS.map((metric) => ({
+              value: metric.key,
+              label: metric.label,
+            }))}
           />
           <Select
             label="Kennzahl 2"
             value={metricB}
-            onChange={(event) => setMetricB(event.target.value as MetricKey | "none")}
+            onChange={(event) =>
+              setMetricB(event.target.value as MetricKey | "none")
+            }
             options={[
               { value: "none", label: "Keine" },
-              ...METRICS.map((metric) => ({ value: metric.key, label: metric.label })),
+              ...METRICS.map((metric) => ({
+                value: metric.key,
+                label: metric.label,
+              })),
             ]}
           />
         </div>
@@ -279,7 +349,8 @@ export function Auswertung({ profileId, heading }: AuswertungProps) {
           <EmptyState>Zahlen werden geladen…</EmptyState>
         ) : currentEntries.length === 0 ? (
           <EmptyState>
-            Für diesen Zeitraum gibt es noch keine Zahlen. Trag deinen Tag unter Tageseintrag ein.
+            Für diesen Zeitraum gibt es noch keine Zahlen. Trag deinen Tag unter
+            Tageseintrag ein.
           </EmptyState>
         ) : (
           <VerlaufsDiagramm
@@ -291,7 +362,7 @@ export function Auswertung({ profileId, heading }: AuswertungProps) {
         )}
       </Panel>
 
-      <Panel eyebrow={period.label} title="Alle Einträge">
+      <Panel bare eyebrow={period.label} title="Alle Einträge">
         {loading ? (
           <EmptyState>Zahlen werden geladen…</EmptyState>
         ) : (

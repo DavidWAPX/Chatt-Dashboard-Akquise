@@ -115,7 +115,7 @@ export function UserAdmin({ currentUserId }: { currentUserId: string }) {
       head: "Name",
       isTitle: true,
       cell: (row) => (
-        <span className="font-sans text-[15px] font-semibold text-text-1 break-anywhere">
+        <span className="font-sans text-[14px] font-medium text-text-1 break-anywhere">
           {row.name}
         </span>
       ),
@@ -124,14 +124,14 @@ export function UserAdmin({ currentUserId }: { currentUserId: string }) {
       key: "email",
       head: "E-Mail",
       cell: (row) => (
-        <span className="text-[14px] text-text-2 break-anywhere">{row.email}</span>
+        <span className="text-[13px] text-text-2 break-anywhere">{row.email}</span>
       ),
     },
     {
       key: "role",
       head: "Rolle",
       cell: (row) => (
-        <span className="text-[14px] text-text-2">{ROLE_LABEL[row.role] ?? row.role}</span>
+        <span className="text-[13px] text-text-2">{ROLE_LABEL[row.role] ?? row.role}</span>
       ),
     },
     {
@@ -139,7 +139,7 @@ export function UserAdmin({ currentUserId }: { currentUserId: string }) {
       head: "Gruppen",
       cell: (row) =>
         row.groups.length === 0 ? (
-          <span className="text-[14px] text-text-3">—</span>
+          <span className="text-[13px] text-text-3">—</span>
         ) : (
           <div className="flex flex-wrap justify-end gap-2 tbl:justify-start">
             {row.groups.map((group) => (
@@ -256,7 +256,7 @@ export function UserAdmin({ currentUserId }: { currentUserId: string }) {
           </>
         }
       >
-        <p className="text-[15px] text-text-2 break-anywhere">
+        <p className="text-[13px] text-text-2 break-anywhere">
           Willst du <strong className="text-text-1">{pendingDelete?.name}</strong> wirklich
           entfernen? Alle Einträge dieses Nutzers werden gelöscht.
         </p>

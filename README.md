@@ -40,12 +40,28 @@ supabase link --project-ref <dein-project-ref>
 supabase db push
 ```
 
-### 3 — E-Mail-Template auf Code umstellen ⚠️
+### 3 — Code-Login einrichten ⚠️
 
-**Ohne diesen Schritt kommt kein 6-stelliger Code an, sondern ein Magic Link — der Login
-funktioniert dann nicht.**
+Zwei Einstellungen, ohne die der Login nicht funktioniert.
 
-Im Supabase-Dashboard unter *Authentication → Email Templates → Magic Link* das Template so
+**3a — Code-Länge auf 6 stellen.** Neue Supabase-Projekte erzeugen teilweise 8-stellige Codes,
+die App hat aber sechs Eingabefelder. Unter *Authentication → Sign In / Providers → Email* die
+Option **Email OTP Length** auf `6` setzen.
+
+**3b — E-Mail-Template auf den Code umstellen.** Standardmäßig verschickt Supabase einen Magic
+Link; das Formular erwartet Ziffern.
+
+> **Wichtig:** Supabase lässt die Vorlagen nur bearbeiten, wenn ein **eigener SMTP-Versand**
+> hinterlegt ist (*Authentication → Emails → Set up SMTP*). Mit dem eingebauten Standard-Mailer
+> ist das Feld schreibgeschützt — und der ist mit ~2 Mails pro Stunde ohnehin nur zum
+> Ausprobieren zu gebrauchen, nicht für ein echtes Team. Ein kostenloser Anbieter wie Resend,
+> Brevo oder Postmark reicht.
+>
+> Zum reinen Testen ohne SMTP lässt sich ein Code auch direkt über die Admin-API erzeugen
+> (`auth.admin.generateLink({ type: 'magiclink', email })` liefert `properties.email_otp`),
+> ganz ohne Mailversand.
+
+Sobald SMTP eingerichtet ist, unter *Authentication → Emails → Magic Link* das Template so
 ändern, dass es `{{ .Token }}` ausgibt statt `{{ .ConfirmationURL }}`. Zum Beispiel:
 
 ```html

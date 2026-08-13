@@ -16,19 +16,21 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;
 }
 
+/* Measured off the reference app: Outfit 13.6px/400, 1px tracking,
+   45px tall, 12.8px/28.8px padding, 4px radius. */
 const BASE =
-  "inline-flex items-center justify-center gap-[10px] rounded-[10px] font-display text-[13px] font-medium uppercase tracking-[0.12em] " +
-  "transition-colors duration-[160ms] ease-out disabled:opacity-45 disabled:cursor-not-allowed";
+  "inline-flex items-center justify-center gap-[10px] rounded-[4px] font-display text-[13.6px] font-normal uppercase tracking-[1px] " +
+  "transition-all duration-[var(--dur)] ease-[var(--ease-ref)] disabled:opacity-45 disabled:cursor-not-allowed";
 
 const VARIANTS: Record<Variant, string> = {
   gold:
-    "h-[52px] px-6 border border-gold text-gold bg-transparent gold-ghost-glow " +
-    "enabled:hover:bg-gold-dim",
+    "h-[45px] px-[28.8px] border border-gold text-gold bg-transparent gold-ghost-glow " +
+    "enabled:hover:border-gold-bright enabled:hover:text-gold-bright",
   neutral:
-    "h-[44px] px-5 border border-[var(--btn-neutral-border)] text-text-1 bg-transparent " +
+    "h-[45px] px-[28.8px] border border-[var(--btn-neutral-border)] text-text-1 bg-transparent " +
     "enabled:hover:bg-surface-2",
   danger:
-    "h-[44px] px-5 border border-danger-border text-danger bg-danger-dim " +
+    "h-[45px] px-[28.8px] border border-danger-border text-danger bg-danger-dim " +
     "enabled:hover:bg-[var(--danger-hover)]",
 };
 
@@ -84,7 +86,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
         title={label}
         className={cn(
           "inline-flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-full border",
-          "transition-colors duration-[160ms] ease-out disabled:opacity-45 disabled:cursor-not-allowed",
+          "transition-colors duration-[var(--dur)] ease-[var(--ease-ref)] disabled:opacity-45 disabled:cursor-not-allowed",
           variant === "neutral"
             ? "border-[var(--btn-icon-border)] text-text-2 bg-transparent enabled:hover:border-border-gold enabled:hover:text-text-1"
             : "border-danger-border text-danger bg-danger-dim enabled:hover:bg-[var(--danger-hover-strong)]",
