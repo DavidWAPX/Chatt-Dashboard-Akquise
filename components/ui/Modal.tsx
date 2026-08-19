@@ -94,7 +94,7 @@ export function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-100 flex items-center justify-center overflow-y-auto bg-[var(--overlay)] p-4 backdrop-blur-[6px]"
+      className="fixed inset-0 z-100 flex items-center justify-center overflow-y-auto bg-[var(--overlay)] p-4"
       // Clicking the overlay closes; clicking the card does not.
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose();

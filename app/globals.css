@@ -39,7 +39,7 @@
   --focus-ring: #94733740;
   --gold-border-active: #94733766;
   --gold-border-chip: #94733766;
-  --overlay: rgba(0, 0, 0, 0.72);
+  --overlay: rgba(0, 0, 0, 0.88); /* modal overlay — opaque instead of blurred */
 
   /* Component-level aliases, all pointing at the reference values */
   --input-bg: #0a0a0a;

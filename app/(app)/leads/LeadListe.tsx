@@ -288,7 +288,7 @@ export function LeadListe({ profileName, leads, fetchedAt, problem }: LeadListeP
       >
         {open && (
           <>
-            <p className="-mt-2 mb-4 text-[13px] text-text-3">
+            <p className="mb-4 text-[13px] text-text-3">
               Lead: <span className="text-text-2">{open.lead || "ohne Namen"}</span>
             </p>
             {/* The sheet's own line breaks are kept — they carry the structure. */}
