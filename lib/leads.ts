@@ -22,33 +22,13 @@ export const LEADS_TAG = "leads-sheet";
 /** How long a fetched sheet is reused before Next refetches it. */
 const REVALIDATE_SECONDS = 300;
 
-/**
- * Free-text columns in the sheet run to 3000 characters. Sending them whole
- * would push an admin's page past 19 MB, and a cell that long is unreadable
- * in a table anyway — so the list carries a preview.
- */
-const TEXT_PREVIEW = 200;
-
-/** Rows an admin gets before picking a chatter. */
-export const ADMIN_PREVIEW_ROWS = 300;
-
-function shorten(value: string): string {
-  const clean = value.replace(/\s+/g, " ").trim();
-  return clean.length > TEXT_PREVIEW ? `${clean.slice(0, TEXT_PREVIEW)}…` : clean;
+/** Collapses the sheet's ragged line breaks without losing the content. */
+function tidy(value: string): string {
+  return value.replace(/\r\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
 }
 
 export type LeadsResult =
-  | {
-      ok: true;
-      leads: Lead[];
-      fetchedAt: string;
-      /** How many rows this profile may see in total. */
-      total: number;
-      /** True when `leads` is only the newest slice of `total`. */
-      capped: boolean;
-      /** Every chatter name in the sheet — admin filter options. */
-      owners: string[];
-    }
+  | { ok: true; leads: Lead[]; fetchedAt: string }
   | { ok: false; reason: "unreachable" | "not-shared" };
 
 /** Names are typed by hand in the sheet — compare them forgivingly. */
@@ -85,9 +65,9 @@ async function fetchSheet(): Promise<
       telefon: record["Telefon"] ?? "",
       lead_status: record["Lead Status"] ?? "",
       lead_von: record["Lead von"] ?? "",
-      notizen: shorten(record["Notizen"] ?? ""),
-      setting_activity: shorten(record["Setting Activity"] ?? ""),
-      closing_activity: shorten(record["Closing Activity"] ?? ""),
+      notizen: tidy(record["Notizen"] ?? ""),
+      setting_activity: tidy(record["Setting Activity"] ?? ""),
+      closing_activity: tidy(record["Closing Activity"] ?? ""),
       termin_buchungsdatum: record["Termin Buchungsdatum"] ?? "",
     }))
     // Rows carrying neither a name nor an owner hold nothing worth showing.
@@ -103,47 +83,23 @@ async function fetchSheet(): Promise<
  * The rows this profile may see: an admin sees every row, a chatter only the
  * ones whose "Lead von" matches their own name.
  */
+/**
+ * The rows this profile may see: the ones whose "Lead von" matches their own
+ * name. Admins are treated exactly like everyone else here — this page is a
+ * chatter's own list, not a management view.
+ */
 export async function getLeadsForProfile(
-  profile: Pick<Profile, "name" | "role">,
-  /** Admins only: narrow to one chatter. Ignored for everyone else. */
-  chatter?: string,
+  profile: Pick<Profile, "name">,
 ): Promise<LeadsResult> {
   const result = await fetchSheet();
   if (!result.ok) return result;
 
-  const fetchedAt = new Date().toISOString();
-  const isAdmin = profile.role === "admin";
+  const own = normaliseName(profile.name);
+  // An empty profile name must never match the sheet's empty owner cells.
+  const leads =
+    own === ""
+      ? []
+      : result.leads.filter((lead) => normaliseName(lead.lead_von) === own);
 
-  const owners = isAdmin
-    ? [...new Set(result.leads.map((lead) => lead.lead_von.trim()))]
-        .filter(Boolean)
-        .sort((a, b) => a.localeCompare(b, "de"))
-    : [];
-
-  if (!isAdmin) {
-    const own = normaliseName(profile.name);
-    // An empty profile name must never match the sheet's empty owner cells.
-    const leads =
-      own === ""
-        ? []
-        : result.leads.filter((lead) => normaliseName(lead.lead_von) === own);
-    return { ok: true, leads, fetchedAt, total: leads.length, capped: false, owners };
-  }
-
-  const wanted = chatter ? normaliseName(chatter) : "";
-  const scoped = wanted
-    ? result.leads.filter((lead) => normaliseName(lead.lead_von) === wanted)
-    : result.leads;
-
-  // Without a chatter chosen, 2600+ rows would be sent for nothing.
-  const capped = !wanted && scoped.length > ADMIN_PREVIEW_ROWS;
-
-  return {
-    ok: true,
-    leads: capped ? scoped.slice(0, ADMIN_PREVIEW_ROWS) : scoped,
-    fetchedAt,
-    total: scoped.length,
-    capped,
-    owners,
-  };
+  return { ok: true, leads, fetchedAt: new Date().toISOString() };
 }

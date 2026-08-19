@@ -13,6 +13,8 @@ export interface Column<T> {
   isActions?: boolean;
   /** Extra classes for the cell. */
   cellClassName?: string;
+  /** Column width for the ≥900px table, e.g. "18%" or "120px". */
+  width?: string;
 }
 
 interface TableProps<T> {
@@ -42,8 +44,14 @@ export function Table<T>({ columns, rows, rowKey, empty, caption }: TableProps<T
   return (
     <>
       {/* ≥ 900px */}
-      <table className="hidden w-full border-collapse tbl:table">
+      <table className="hidden w-full table-fixed border-collapse tbl:table">
         <caption className="sr-only">{caption}</caption>
+        {/* Fixed widths stop one long cell from squeezing its neighbours. */}
+        <colgroup>
+          {columns.map((column) => (
+            <col key={column.key} style={column.width ? { width: column.width } : undefined} />
+          ))}
+        </colgroup>
         <thead>
           <tr className="border-b border-border-default">
             {columns.map((column) => (
@@ -51,7 +59,8 @@ export function Table<T>({ columns, rows, rowKey, empty, caption }: TableProps<T
                 key={column.key}
                 scope="col"
                 className={cn(
-                  "pb-[14px] font-display text-[11px] font-semibold uppercase tracking-[0.09em] text-gold",
+                  // pr-4 matches the cells, so neighbouring heads never touch.
+                  "pb-[14px] pr-4 align-bottom font-display text-[11px] font-semibold uppercase tracking-[0.09em] text-gold last:pr-0",
                   column.align === "right" ? "text-right" : "text-left",
                 )}
               >
