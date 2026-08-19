@@ -56,7 +56,7 @@ export function LeadListe({ profileName, leads, fetchedAt, problem }: LeadListeP
       .filter(Boolean)
       .sort((a, b) => a.localeCompare(b, "de"));
     return [
-      { value: ALL, label: "Alle Status" },
+      { value: ALL, label: "Alle Leads" },
       ...values.map((value) => ({ value, label: value })),
     ];
   }, [leads]);
@@ -197,6 +197,7 @@ export function LeadListe({ profileName, leads, fetchedAt, problem }: LeadListeP
             loading={pending}
             loadingLabel="Wird geladen…"
             icon={<RefreshCw size={15} aria-hidden="true" />}
+            className="shrink-0 enabled:hover:border-gold enabled:hover:text-gold-bright enabled:hover:shadow-[0_0_0_3px_var(--focus-ring)]"
           >
             Aktualisieren
           </Button>
@@ -218,7 +219,7 @@ export function LeadListe({ profileName, leads, fetchedAt, problem }: LeadListeP
               autoComplete="off"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Leads oder Status suchen…"
+              placeholder="Name oder Status suchen…"
               className="h-[47px] w-full rounded-[6px] border border-input-border bg-input-bg pl-11 pr-11 text-[15.2px] text-text-1 placeholder:text-text-3 focus:border-gold focus:shadow-[0_0_0_3px_var(--focus-ring)] focus:outline-none"
             />
             {search !== "" && (
@@ -247,8 +248,8 @@ export function LeadListe({ profileName, leads, fetchedAt, problem }: LeadListeP
         <div className="mt-3 mb-5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-text-3">
           <span className="tnum">
             {filtered
-              ? `${formatNumber(visible.length)} von ${formatNumber(leads.length)} Leads`
-              : `${formatNumber(leads.length)} Leads`}
+              ? `${formatNumber(visible.length)} von ${formatNumber(leads.length)} Einträge`
+              : `${formatNumber(leads.length)} Einträge`}
           </span>
           {stamp && <span aria-hidden="true">·</span>}
           {stamp && <span>Stand {stamp}</span>}
@@ -291,7 +292,7 @@ export function LeadListe({ profileName, leads, fetchedAt, problem }: LeadListeP
               Lead: <span className="text-text-2">{open.lead || "ohne Namen"}</span>
             </p>
             {/* The sheet's own line breaks are kept — they carry the structure. */}
-            <p className="max-h-[60vh] overflow-y-auto whitespace-pre-wrap text-[14px] leading-relaxed text-text-2 break-anywhere">
+            <p className="whitespace-pre-wrap text-[14px] leading-relaxed text-text-2 break-anywhere">
               {open.text}
             </p>
           </>

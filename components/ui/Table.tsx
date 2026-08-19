@@ -72,12 +72,15 @@ export function Table<T>({
           ))}
         </colgroup>
         <thead>
-          <tr className={cn("border-b border-border-default", framed && "bg-surface-1")}>
+          <tr className={cn(framed && "bg-surface-1")}>
             {columns.map((column) => (
               <th
                 key={column.key}
                 scope="col"
                 className={cn(
+                  // Borders sit on the cells, not the row: a border on <tr>
+                  // renders in broken segments under border-collapse.
+                  "border-b border-border-default",
                   "font-display text-[11px] font-semibold uppercase tracking-[0.09em] text-gold",
                   framed ? "px-5 py-4 align-middle" : "pb-[14px] pr-4 align-bottom last:pr-0",
                   column.align === "right" ? "text-right" : "text-left",
@@ -99,13 +102,14 @@ export function Table<T>({
           {rows.map((row) => (
             <tr
               key={rowKey(row)}
-              className="border-b border-border-soft transition-colors duration-[var(--dur)] ease-[var(--ease-ref)] last:border-b-0 hover:bg-row-hover"
+              className="group transition-colors duration-[var(--dur)] ease-[var(--ease-ref)] hover:bg-row-hover"
             >
               {columns.map((column) => (
                 <td
                   key={column.key}
                   className={cn(
-                    "align-middle",
+                    // Same reason as the head: the divider belongs on the cell.
+                    "border-b border-border-soft align-middle group-last:border-b-0",
                     framed ? "h-[64px] px-5 py-4" : "h-[72px] py-3 pr-4 last:pr-0",
                     column.align === "right" ? "text-right tnum" : "text-left",
                     column.cellClassName,

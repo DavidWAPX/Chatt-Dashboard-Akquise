@@ -106,24 +106,28 @@ export function Modal({
         aria-modal="true"
         aria-labelledby={titleId}
         className={cn(
-          "my-auto w-[calc(100vw-32px)] max-w-[840px] rounded-[12px] border border-input-border bg-modal p-5 tbl:p-8",
+          // The card never outgrows the screen: max-h-full measures against the
+          // overlay's content box, so the overlay padding is already accounted
+          // for. The body scrolls, keeping title and buttons reachable.
+          "flex max-h-full w-[calc(100vw-32px)] max-w-[840px] flex-col",
+          "rounded-[12px] border border-input-border bg-modal p-5 tbl:p-8",
           className,
         )}
       >
         <h2
           id={titleId}
-          className="font-display text-[19px] font-bold uppercase tracking-[0.05em] text-gold"
+          className="shrink-0 font-display text-[19px] font-bold uppercase tracking-[0.05em] text-gold"
         >
           {title}
         </h2>
 
-        <div className="mt-6">{children}</div>
+        <div className="mt-6 min-h-0 flex-1 overflow-y-auto">{children}</div>
 
         {footer && (
-          <>
+          <div className="shrink-0">
             <hr className="my-6 border-0 border-t border-border-default" />
             <div className="flex flex-wrap justify-end gap-3">{footer}</div>
-          </>
+          </div>
         )}
       </div>
     </div>
