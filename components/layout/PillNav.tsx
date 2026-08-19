@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, LayoutGrid, SquarePen, Users } from "lucide-react";
+import { BarChart3, LayoutGrid, ListChecks, SquarePen, Users } from "lucide-react";
 import { cn } from "@/lib/cn";
 import type { UserRole } from "@/lib/types";
 
 const ITEMS = [
   { href: "/", label: "Statistik", icon: LayoutGrid, adminOnly: false },
   { href: "/tageseintrag", label: "Tageseintrag", icon: SquarePen, adminOnly: false },
+  { href: "/leads", label: "Lead Status", icon: ListChecks, adminOnly: false },
   { href: "/admin/statistik", label: "Admin", icon: BarChart3, adminOnly: true },
   { href: "/admin/benutzer", label: "Benutzer", icon: Users, adminOnly: true },
 ] as const;

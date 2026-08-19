@@ -44,6 +44,21 @@ export type Entry = MetricValues & {
   updated_at: string;
 };
 
+/** One row of the Google Sheet. Read-only — never stored, never written. */
+export type Lead = {
+  /** Sheet row number; stable enough to key a list. */
+  id: string;
+  name: string;
+  email: string;
+  telefon: string;
+  lead_status: string;
+  lead_von: string;
+  notizen: string;
+  setting_activity: string;
+  closing_activity: string;
+  termin_buchungsdatum: string;
+};
+
 /** A profile joined with the groups it belongs to — what the admin list renders. */
 export type ProfileWithGroups = Profile & {
   groups: Group[];

@@ -108,16 +108,32 @@ app/
     admin/              Admin-Guard: role === 'admin'
       statistik/        Auswertung aller Chatter
       benutzer/         Benutzer- und Gruppenverwaltung
+    leads/              Lead Status — Leads aus der Google-Tabelle
   api/admin/users/      Route Handler, nur Service-Role
 components/
   ui/                   Button, Input, Select, Modal, Segmented, Chip, Table, StatCard …
   analytics/            Auswertung — geteilt von /(app)/page und /admin/statistik
 lib/
+  leads.ts              liest die Google-Tabelle serverseitig und filtert je Chatter
+  csv.ts                CSV-Parser (ohne Fremdbibliothek)
   supabase/             client (Browser) · server (RSC) · admin (Service-Role)
   metrics.ts            Die sechs Kennzahlen an einer Stelle definiert
   date-ranges.ts        Tag / Woche / Monat / Jahr, Wochen ab Montag
 supabase/migrations/
 ```
+
+## Lead Status
+
+Die Leadliste kommt direkt aus einer Google-Tabelle und wird **nicht** in der Datenbank
+gespiegelt — sie wird in der App nie bearbeitet, also gibt es nichts zu speichern.
+
+- Die Tabelle muss auf *Jeder mit dem Link – Betrachter* stehen.
+- Andere Tabelle? `LEADS_SHEET_CSV_URL` in `.env.local` setzen
+  (`https://docs.google.com/spreadsheets/d/<id>/export?format=csv`).
+- Ein Chatter sieht die Zeilen, deren Spalte **Lead von** seinem Profilnamen entspricht —
+  verglichen ohne Groß-/Kleinschreibung und ohne Randleerzeichen. Der Abgleich passiert
+  **serverseitig**, bevor irgendetwas den Browser erreicht.
+- Das Blatt wird 5 Minuten zwischengespeichert; *Aktualisieren* verwirft den Cache sofort.
 
 ## Konventionen
 

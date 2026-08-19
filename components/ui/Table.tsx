@@ -29,9 +29,9 @@ interface TableProps<T> {
  * card. It never scrolls sideways.
  */
 export function Table<T>({ columns, rows, rowKey, empty, caption }: TableProps<T>) {
-  if (rows.length === 0) {
-    return <EmptyState>{empty}</EmptyState>;
-  }
+  // An empty table still shows its head, so the columns stay readable and the
+  // layout does not pop into existence with the first row.
+  const isEmpty = rows.length === 0;
 
   const titleColumn = columns.find((column) => column.isTitle);
   const actionsColumn = columns.find((column) => column.isActions);
@@ -61,6 +61,13 @@ export function Table<T>({ columns, rows, rowKey, empty, caption }: TableProps<T
           </tr>
         </thead>
         <tbody>
+          {isEmpty && (
+            <tr>
+              <td colSpan={columns.length}>
+                <EmptyState>{empty}</EmptyState>
+              </td>
+            </tr>
+          )}
           {rows.map((row) => (
             <tr
               key={rowKey(row)}
@@ -84,6 +91,11 @@ export function Table<T>({ columns, rows, rowKey, empty, caption }: TableProps<T
       </table>
 
       {/* < 900px — one card per row */}
+      {isEmpty && (
+        <div className="tbl:hidden">
+          <EmptyState>{empty}</EmptyState>
+        </div>
+      )}
       <ul className="flex flex-col gap-3 tbl:hidden">
         {rows.map((row) => (
           <li

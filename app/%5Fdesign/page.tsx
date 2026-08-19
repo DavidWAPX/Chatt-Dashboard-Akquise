@@ -15,6 +15,7 @@ import { Select } from "@/components/ui/Select";
 import { Button, IconButton } from "@/components/ui/Button";
 import { Input, NumberInput } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
+import { LeadStatusChip } from "@/components/leads/LeadStatusChip";
 import { Trichter } from "@/components/analytics/Trichter";
 import { QuotenRinge } from "@/components/analytics/QuotenRinge";
 import { VerlaufsDiagramm } from "@/components/analytics/VerlaufsDiagramm";
@@ -348,6 +349,31 @@ export default function DesignPreview() {
               },
             ]}
           />
+        </Panel>
+        {/* Lead Status — leere Tabelle: Kopfzeile muss stehen bleiben */}
+        <Panel bare eyebrow="Connor Blim" title="Lead Status (leer)">
+          <Table
+            caption="Leer"
+            rows={[] as Entry[]}
+            rowKey={(r) => r.id}
+            empty="Keine Leads vorhanden, bitte aktualisiere deine Einträge."
+            columns={[
+              { key: "n", head: "Name", isTitle: true, cell: () => null },
+              { key: "e", head: "Email", cell: () => null },
+              { key: "t", head: "Telefon", cell: () => null },
+              { key: "s", head: "Lead Status", cell: () => null },
+              { key: "no", head: "Notizen", cell: () => null },
+              { key: "sa", head: "Setting Aktivität", cell: () => null },
+              { key: "ca", head: "Closing Aktivität", cell: () => null },
+            ]}
+          />
+          <div className="mt-6 flex flex-wrap gap-2">
+            <LeadStatusChip status="Gewonnen" />
+            <LeadStatusChip status="Verloren" />
+            <LeadStatusChip status="Closing Termin" />
+            <LeadStatusChip status="Setting Follow Up" />
+            <LeadStatusChip status="" />
+          </div>
         </Panel>
       </main>
 
