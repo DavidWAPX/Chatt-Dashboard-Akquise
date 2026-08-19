@@ -33,6 +33,15 @@
   --danger-hover: #cf667933;
   --danger-hover-strong: #cf66793d;
 
+  /* Lead status tones. One base colour each — the chip derives its border,
+     fill and glow from it, so a tone is changed in exactly one place. */
+  --status-won: #4caf7d; /* Gewonnen */
+  --status-lost: #cf6679; /* Verloren, Unqualifiziert — same red as danger */
+  --status-followup: #ffffff8c; /* alles mit Followup / FU — ruhiges Grau */
+  --status-alert: #ffffffcc; /* No Show / abgesagt — helleres, auffälligeres Grau */
+  --status-open: #ffffff; /* Entscheidung ausstehend — Weiß */
+  --status-termin: #b68f44; /* alles mit Termin — Gold */
+
   --nav-inactive: #ffffffa6; /* nav label at rest */
   --nav-hover: #141414; /* --surface-hover under a hovered nav item */
 
@@ -248,6 +257,44 @@
 .nav-item-active {
   background-color: var(--surface-3);
 }
+
+/* ==========================================================================
+   Lead status chips
+   Tinted fill, matching border, a soft glow and a leading dot — all derived
+   from one tone colour, all visible at rest without hover or click.
+   ========================================================================== */
+
+.chip-status {
+  --tone: var(--text-2);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--tone) 38%, transparent);
+  background-color: color-mix(in srgb, var(--tone) 14%, transparent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--tone) 22%, transparent);
+  padding: 6px 14px;
+  font-size: 13px;
+  color: var(--tone);
+}
+
+/* The dot picks up the text colour, so it always matches its tone. */
+.chip-status::before {
+  content: "";
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background-color: currentColor;
+}
+
+.chip-won { --tone: var(--status-won); }
+.chip-lost { --tone: var(--status-lost); }
+.chip-followup { --tone: var(--status-followup); }
+.chip-alert { --tone: var(--status-alert); }
+.chip-open { --tone: var(--status-open); }
+.chip-termin { --tone: var(--status-termin); }
 
 .gold-ghost-glow {
   box-shadow: none;

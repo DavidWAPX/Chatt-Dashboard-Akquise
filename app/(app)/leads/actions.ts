@@ -1,8 +1,7 @@
 "use server";
 
-import { revalidateTag } from "next/cache";
 import { getSessionProfile } from "@/lib/supabase/server";
-import { LEADS_TAG } from "@/lib/leads";
+import { invalidateLeadsCache } from "@/lib/leads";
 
 /** Drops the cached sheet so the next render pulls it fresh. */
 export async function refreshLeads(): Promise<void> {
@@ -10,5 +9,5 @@ export async function refreshLeads(): Promise<void> {
   const profile = await getSessionProfile();
   if (!profile) return;
 
-  revalidateTag(LEADS_TAG);
+  invalidateLeadsCache();
 }

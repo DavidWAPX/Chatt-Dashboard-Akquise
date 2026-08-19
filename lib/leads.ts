@@ -16,11 +16,24 @@ const SHEET_URL =
   process.env.LEADS_SHEET_CSV_URL ??
   "https://docs.google.com/spreadsheets/d/1REk7jWQioCl2-lO7ZJmtyKL9zg7CFtsdf4Psd6JCkFw/export?format=csv";
 
-/** Cache tag so "Aktualisieren" can drop the cached sheet on demand. */
-export const LEADS_TAG = "leads-sheet";
+/**
+ * The sheet is ~4.5 MB, well past the 2 MB ceiling on Next's data cache, so
+ * `next: { revalidate }` silently refused to store it and every request
+ * re-downloaded the whole file. The parsed rows are kept in module memory
+ * instead — a fraction of the size and already in the shape we need.
+ *
+ * Module state lives per server instance, so a fresh instance simply fetches
+ * once. That is the intended behaviour, not a leak.
+ */
+let cache: { leads: Lead[]; at: number } | null = null;
 
-/** How long a fetched sheet is reused before Next refetches it. */
-const REVALIDATE_SECONDS = 300;
+/** How long parsed rows are reused before the sheet is pulled again. */
+const TTL_MS = 5 * 60 * 1000;
+
+/** Drops the cached sheet so the next read pulls it fresh. */
+export function invalidateLeadsCache(): void {
+  cache = null;
+}
 
 /** Collapses the sheet's ragged line breaks without losing the content. */
 function tidy(value: string): string {
@@ -39,13 +52,16 @@ export function normaliseName(value: string): string {
 async function fetchSheet(): Promise<
   { ok: true; leads: Lead[] } | { ok: false; reason: "unreachable" | "not-shared" }
 > {
+  if (cache && Date.now() - cache.at < TTL_MS) {
+    return { ok: true, leads: cache.leads };
+  }
+
   let csv: string;
 
   try {
-    const response = await fetch(SHEET_URL, {
-      redirect: "follow",
-      next: { revalidate: REVALIDATE_SECONDS, tags: [LEADS_TAG] },
-    });
+    // no-store: the response is too big for Next's cache anyway, and the
+    // parsed result is what gets kept.
+    const response = await fetch(SHEET_URL, { redirect: "follow", cache: "no-store" });
     if (!response.ok) throw new Error(String(response.status));
     csv = await response.text();
   } catch {
@@ -76,13 +92,10 @@ async function fetchSheet(): Promise<
   // Newest rows sit at the bottom of the sheet — show them first.
   leads.reverse();
 
+  cache = { leads, at: Date.now() };
   return { ok: true, leads };
 }
 
-/**
- * The rows this profile may see: an admin sees every row, a chatter only the
- * ones whose "Lead von" matches their own name.
- */
 /**
  * The rows this profile may see: the ones whose "Lead von" matches their own
  * name. Admins are treated exactly like everyone else here — this page is a
