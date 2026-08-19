@@ -268,7 +268,6 @@
   --tone: var(--text-2);
   display: inline-flex;
   align-items: center;
-  gap: 8px;
   white-space: nowrap;
   border-radius: 6px;
   border: 1px solid color-mix(in srgb, var(--tone) 38%, transparent);
@@ -277,16 +276,6 @@
   padding: 6px 14px;
   font-size: 13px;
   color: var(--tone);
-}
-
-/* The dot picks up the text colour, so it always matches its tone. */
-.chip-status::before {
-  content: "";
-  flex: none;
-  width: 6px;
-  height: 6px;
-  border-radius: 999px;
-  background-color: currentColor;
 }
 
 .chip-won { --tone: var(--status-won); }
