@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useId, useRef } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
@@ -26,6 +27,11 @@ export function Modal({
   footer,
   className,
 }: ModalProps) {
+  // Rendered through a portal on <body>, so no ancestor's stacking context can
+  // trap the overlay underneath the fixed navigation.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   const cardRef = useRef<HTMLDivElement>(null);
   // Remembered so focus goes back where it came from on close.
   const openerRef = useRef<HTMLElement | null>(null);
@@ -90,11 +96,11 @@ export function Modal({
     };
   }, [open, handleKeyDown]);
 
-  if (!open) return null;
+  if (!open || !mounted) return null;
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-100 flex items-center justify-center overflow-y-auto bg-[var(--overlay)] p-4"
+      className="fixed inset-0 z-[9999] flex items-center justify-center overflow-y-auto bg-[var(--overlay)] p-4"
       // Clicking the overlay closes; clicking the card does not.
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose();
@@ -130,6 +136,7 @@ export function Modal({
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

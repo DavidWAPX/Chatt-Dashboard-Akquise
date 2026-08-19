@@ -63,7 +63,10 @@ export function Table<T>({
           framed && "overflow-hidden rounded-[12px] border border-border-default",
         )}
       >
-      <table className="w-full table-fixed border-collapse">
+      {/* border-separate, not collapse: with collapse the browser merges
+          neighbouring borders and resolves conflicts itself, which renders the
+          divider in uneven segments. Separated borders draw exactly as given. */}
+      <table className="w-full table-fixed border-separate border-spacing-0">
         <caption className="sr-only">{caption}</caption>
         {/* Fixed widths stop one long cell from squeezing its neighbours. */}
         <colgroup>
