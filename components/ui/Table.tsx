@@ -24,13 +24,26 @@ interface TableProps<T> {
   /** Signpost text shown when there are no rows. */
   empty: string;
   caption: string;
+  /**
+   * Wraps the table in a bordered, rounded frame with its own header band —
+   * the look the other dashboards use. Without it the table sits bare on the
+   * page.
+   */
+  framed?: boolean;
 }
 
 /**
  * Table — §6.7. Above 900px a real table; below it every row becomes its own
  * card. It never scrolls sideways.
  */
-export function Table<T>({ columns, rows, rowKey, empty, caption }: TableProps<T>) {
+export function Table<T>({
+  columns,
+  rows,
+  rowKey,
+  empty,
+  caption,
+  framed = false,
+}: TableProps<T>) {
   // An empty table still shows its head, so the columns stay readable and the
   // layout does not pop into existence with the first row.
   const isEmpty = rows.length === 0;
@@ -44,7 +57,13 @@ export function Table<T>({ columns, rows, rowKey, empty, caption }: TableProps<T
   return (
     <>
       {/* ≥ 900px */}
-      <table className="hidden w-full table-fixed border-collapse tbl:table">
+      <div
+        className={cn(
+          "hidden tbl:block",
+          framed && "overflow-hidden rounded-[12px] border border-border-default",
+        )}
+      >
+      <table className="w-full table-fixed border-collapse">
         <caption className="sr-only">{caption}</caption>
         {/* Fixed widths stop one long cell from squeezing its neighbours. */}
         <colgroup>
@@ -53,14 +72,14 @@ export function Table<T>({ columns, rows, rowKey, empty, caption }: TableProps<T
           ))}
         </colgroup>
         <thead>
-          <tr className="border-b border-border-default">
+          <tr className={cn("border-b border-border-default", framed && "bg-surface-1")}>
             {columns.map((column) => (
               <th
                 key={column.key}
                 scope="col"
                 className={cn(
-                  // pr-4 matches the cells, so neighbouring heads never touch.
-                  "pb-[14px] pr-4 align-bottom font-display text-[11px] font-semibold uppercase tracking-[0.09em] text-gold last:pr-0",
+                  "font-display text-[11px] font-semibold uppercase tracking-[0.09em] text-gold",
+                  framed ? "px-5 py-4 align-middle" : "pb-[14px] pr-4 align-bottom last:pr-0",
                   column.align === "right" ? "text-right" : "text-left",
                 )}
               >
@@ -86,7 +105,8 @@ export function Table<T>({ columns, rows, rowKey, empty, caption }: TableProps<T
                 <td
                   key={column.key}
                   className={cn(
-                    "h-[72px] py-3 pr-4 align-middle last:pr-0",
+                    "align-middle",
+                    framed ? "h-[64px] px-5 py-4" : "h-[72px] py-3 pr-4 last:pr-0",
                     column.align === "right" ? "text-right tnum" : "text-left",
                     column.cellClassName,
                   )}
@@ -98,6 +118,7 @@ export function Table<T>({ columns, rows, rowKey, empty, caption }: TableProps<T
           ))}
         </tbody>
       </table>
+      </div>
 
       {/* < 900px — one card per row */}
       {isEmpty && (

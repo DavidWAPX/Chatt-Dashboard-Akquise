@@ -3,7 +3,6 @@
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { RefreshCw, Search, X } from "lucide-react";
-import { Panel } from "@/components/ui/Panel";
 import { Table, type Column } from "@/components/ui/Table";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
@@ -178,11 +177,20 @@ export function LeadListe({ profileName, leads, fetchedAt, problem }: LeadListeP
 
   return (
     <>
-      <Panel
-        bare
-        eyebrow={profileName}
-        title="Lead Status"
-        action={
+      {/* One framed card, like the other dashboards: gold heading, a line of
+          explanation, search on the right, then the table inside its frame. */}
+      <section className="rounded-[12px] border border-panel-border bg-surface-1 p-5 tbl:p-8">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h1 className="font-display text-[19px] font-medium uppercase tracking-[0.05em] text-gold tbl:text-[21px]">
+              Lead Status
+            </h1>
+            <p className="mt-2 max-w-[70ch] text-[14px] text-text-2">
+              Hier siehst du alle Leads, die dir als{" "}
+              <span className="text-text-1">{profileName}</span> zugeordnet sind, und wo
+              sie gerade stehen.
+            </p>
+          </div>
           <Button
             variant="neutral"
             onClick={handleRefresh}
@@ -192,10 +200,9 @@ export function LeadListe({ profileName, leads, fetchedAt, problem }: LeadListeP
           >
             Aktualisieren
           </Button>
-        }
-      >
-        {/* Toolbar: search carries the width, the status filter stays compact. */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        </div>
+
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="relative min-w-0 flex-1">
             <label htmlFor="lead-search" className="sr-only">
               Leads durchsuchen
@@ -211,8 +218,8 @@ export function LeadListe({ profileName, leads, fetchedAt, problem }: LeadListeP
               autoComplete="off"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Name, Email, Telefon, Status oder Notiz…"
-              className="h-[47px] w-full rounded-[4px] border border-input-border bg-input-bg pl-11 pr-11 text-[15.2px] text-text-1 placeholder:text-text-3 focus:border-gold focus:shadow-[0_0_0_3px_var(--focus-ring)] focus:outline-none"
+              placeholder="Leads oder Status suchen…"
+              className="h-[47px] w-full rounded-[6px] border border-input-border bg-input-bg pl-11 pr-11 text-[15.2px] text-text-1 placeholder:text-text-3 focus:border-gold focus:shadow-[0_0_0_3px_var(--focus-ring)] focus:outline-none"
             />
             {search !== "" && (
               <button
@@ -237,7 +244,7 @@ export function LeadListe({ profileName, leads, fetchedAt, problem }: LeadListeP
           </div>
         </div>
 
-        <div className="mt-3 mb-6 flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-text-3">
+        <div className="mt-3 mb-5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] text-text-3">
           <span className="tnum">
             {filtered
               ? `${formatNumber(visible.length)} von ${formatNumber(leads.length)} Leads`
@@ -248,13 +255,14 @@ export function LeadListe({ profileName, leads, fetchedAt, problem }: LeadListeP
         </div>
 
         {problem === "not-shared" && (
-          <p className="mb-6 text-[14px] text-text-2">
+          <p className="mb-5 text-[14px] text-text-2">
             Die Google-Tabelle ist nicht freigegeben. Stell sie auf „Jeder mit dem Link –
             Betrachter“, dann erscheinen die Leads hier automatisch.
           </p>
         )}
 
         <Table
+          framed
           caption="Lead Status"
           rows={visible}
           rowKey={(lead) => lead.id}
@@ -265,7 +273,7 @@ export function LeadListe({ profileName, leads, fetchedAt, problem }: LeadListeP
               : "Keine Leads vorhanden, bitte aktualisiere deine Einträge."
           }
         />
-      </Panel>
+      </section>
 
       <Modal
         open={open !== null}

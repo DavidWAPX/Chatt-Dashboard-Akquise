@@ -1,7 +1,5 @@
 "use client";
 
-import { Info } from "lucide-react";
-
 interface InfoButtonProps {
   /** The full text this button reveals. Empty means nothing to show. */
   text: string;
@@ -22,10 +20,9 @@ export function InfoButton({ text, onOpen }: InfoButtonProps) {
     <button
       type="button"
       onClick={onOpen}
-      className="inline-flex items-center gap-1.5 rounded-[4px] border border-border-default bg-surface-1 px-2.5 py-1.5 text-[12px] text-text-2 hover:border-border-gold hover:bg-surface-2 hover:text-text-1"
+      className="inline-flex items-center rounded-[6px] border border-border-default bg-surface-2 px-3.5 py-1.5 text-[13px] text-text-1 hover:border-border-gold hover:text-gold-bright"
     >
-      <Info size={13} aria-hidden="true" />
-      Info
+      Klick
     </button>
   );
 }
