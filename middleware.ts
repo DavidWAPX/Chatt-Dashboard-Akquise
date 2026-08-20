@@ -32,7 +32,26 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  await supabase.auth.getUser();
+  /*
+   * The middleware exists to refresh an expiring session cookie. Calling
+   * getUser() unconditionally cost a network round-trip on every request,
+   * refresh needed or not. getSession() reads the cookie locally, so the
+   * expiry can be checked for free and the round-trip only happens when a
+   * refresh is actually due.
+   *
+   * This is not where authorisation happens — getSessionProfile verifies the
+   * token's signature before any guard trusts it.
+   */
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  const expiresInMs = (session?.expires_at ?? 0) * 1000 - Date.now();
+  const REFRESH_WINDOW_MS = 10 * 60 * 1000;
+
+  if (!session || expiresInMs < REFRESH_WINDOW_MS) {
+    await supabase.auth.getUser();
+  }
 
   return response;
 }
