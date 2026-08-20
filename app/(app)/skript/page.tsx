@@ -44,11 +44,6 @@ export default async function SkriptPage() {
     );
   }
 
-  const stand = new Date(skript.geholtAm).toLocaleTimeString("de-DE", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-
   return (
     <>
       <section className="rounded-[12px] border border-panel-border bg-surface-1 p-5 tbl:p-8">
@@ -70,17 +65,15 @@ export default async function SkriptPage() {
             href={SKRIPT_DOC_EDIT_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex h-[44px] shrink-0 items-center gap-2 rounded-[6px] border border-btn-neutral-border bg-surface-1 px-4 text-[14px] text-text-1 transition-colors duration-[var(--dur)] ease-[var(--ease-ref)] hover:border-gold hover:text-gold-bright"
+            className="btn-gold shrink-0"
           >
-            Im Google-Dokument bearbeiten
-            <ExternalLink size={15} aria-hidden="true" />
+            Skript in Google Docs öffnen
           </a>
         </div>
 
         <p className="mt-5 flex flex-wrap items-center gap-2 border-t border-border-soft pt-4 text-[13px] text-text-3">
           <RefreshCw size={13} aria-hidden="true" className="shrink-0" />
-          Direkt aus dem Google-Dokument geladen — Änderungen dort erscheinen
-          hier innerhalb einer Minute. Stand {stand} Uhr.
+          Chatter Skript wird live aus Google Docs übertragen.
         </p>
       </section>
 

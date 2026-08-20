@@ -1,5 +1,5 @@
 import { cn } from "@/lib/cn";
-import type { SkriptAbschnitt, SkriptBlock } from "@/lib/skript";
+import type { SkriptAbschnitt, SkriptBlock, SkriptZeile } from "@/lib/skript";
 
 /**
  * Rendert die aus dem Google-Dokument gelesene Struktur.
@@ -9,6 +9,50 @@ import type { SkriptAbschnitt, SkriptBlock } from "@/lib/skript";
  * Zeichen neu aufgebaut — Text wird escaped, erlaubt sind nur <strong>, <em>,
  * <br> und geprüfte http(s)-Links.
  */
+
+/** Text, der so in den Chat geht: abgesetzt im eigenen Feld. */
+function Feld({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="skript-text mt-3 rounded-[10px] border border-border-default bg-surface-2/40 px-4 py-3.5 text-[15px] leading-[1.7] text-text-2">
+      {children}
+    </div>
+  );
+}
+
+/** Regieanweisung an den Chatter: ohne Rahmen, eine Stufe zurückgenommen. */
+function Notiz({ zeilen }: { zeilen: SkriptZeile[] }) {
+  return (
+    <div className="skript-text mt-3">
+      {zeilen.map((zeile, index) => (
+        <p
+          key={index}
+          className="skript-hinweis text-[13.5px] leading-[1.6] text-text-3"
+          dangerouslySetInnerHTML={{ __html: zeile.html }}
+        />
+      ))}
+    </div>
+  );
+}
+
+/**
+ * Teilt die Zeilen eines Absatzes in aufeinanderfolgende Blöcke gleicher Art.
+ * Dadurch steht eine Anweisung über oder unter dem Feld — je nachdem, wo sie
+ * im Dokument steht — aber nie mitten darin.
+ */
+function inGruppen(
+  zeilen: SkriptZeile[],
+): Array<{ hinweis: boolean; zeilen: SkriptZeile[] }> {
+  const gruppen: Array<{ hinweis: boolean; zeilen: SkriptZeile[] }> = [];
+
+  for (const zeile of zeilen) {
+    const letzte = gruppen[gruppen.length - 1];
+    if (letzte && letzte.hinweis === zeile.hinweis) letzte.zeilen.push(zeile);
+    else gruppen.push({ hinweis: zeile.hinweis, zeilen: [zeile] });
+  }
+
+  return gruppen;
+}
+
 function Block({ block, vorspann }: { block: SkriptBlock; vorspann: boolean }) {
   if (block.art === "trenner") {
     return <hr className="my-7 border-0 border-t border-border-soft" />;
@@ -23,47 +67,51 @@ function Block({ block, vorspann }: { block: SkriptBlock; vorspann: boolean }) {
   }
 
   if (block.art === "bild") {
-    // Data-URI aus dem Dokument: next/image kann daran nichts optimieren,
-    // geladen wird ohnehin nichts nach.
+    /*
+     * Das Dokument bringt Kopf- und Fußgrafik auf schwarzem Grund mit. Ohne
+     * Rahmen und mit weich auslaufenden Kanten geht sie in die Seite über,
+     * statt wie ein eingeklebter Fremdkörper darauf zu liegen.
+     */
     return (
       // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={block.src}
-        alt=""
-        className="my-6 w-full rounded-[10px] border border-border-default"
-      />
+      <img src={block.src} alt="" className="skript-bild w-full" />
     );
   }
 
   if (block.art === "liste") {
     return (
-      <ul className="mt-4 flex flex-col gap-2">
-        {block.punkte.map((punkt, index) => (
-          <li key={index} className="flex gap-3 text-[15px] leading-[1.65] text-text-2">
-            <span aria-hidden="true" className="mt-[9px] h-[5px] w-[5px] shrink-0 rounded-full bg-gold" />
-            <span dangerouslySetInnerHTML={{ __html: punkt.html }} />
-          </li>
-        ))}
-      </ul>
+      <div className="mt-1">
+        {block.punkte.map((punkt, index) =>
+          punkt.nachricht && !vorspann ? (
+            // Jede fertige Nachricht bekommt ihr eigenes Feld — so markiert
+            // man immer genau eine, nie versehentlich die ganze Liste.
+            <Feld key={index}>
+              <span dangerouslySetInnerHTML={{ __html: punkt.html }} />
+            </Feld>
+          ) : (
+            <p
+              key={index}
+              className="skript-text mt-2 flex gap-3 text-[15px] leading-[1.7] text-text-2"
+            >
+              <span
+                aria-hidden="true"
+                className="mt-[10px] h-[5px] w-[5px] shrink-0 rounded-full bg-gold"
+              />
+              <span dangerouslySetInnerHTML={{ __html: punkt.html }} />
+            </p>
+          ),
+        )}
+      </div>
     );
   }
 
   /*
-   * Ein Absatz kann beides enthalten: den Text, der an den Lead geht, und
-   * Regieanweisungen an den Chatter. Das Erste steht abgesetzt im Rahmen —
-   * so ist auf einen Blick klar, was in den Chat kopiert wird und was nur
-   * dabeisteht. Kopiert wird von Hand, mit Maus und Tastatur.
+   * Im Vorspann steht Rahmeninformation, kein Chattext: dort bleibt alles
+   * gleichförmiger Fließtext mit gleichen Abständen, ohne Felder.
    */
-  const nachricht = !vorspann && block.nachricht;
-
-  return (
-    <div
-      className={cn(
-        "skript-block mt-4 rounded-[10px] border px-4 py-3.5",
-        nachricht ? "border-border-default bg-surface-2/40" : "border-transparent px-0 py-1",
-      )}
-    >
-      <div className="skript-text text-[15px] leading-[1.7]">
+  if (vorspann || !block.nachricht) {
+    return (
+      <div className="skript-text mt-3 text-[15px] leading-[1.7]">
         {block.zeilen.map((zeile, index) => (
           <p
             key={index}
@@ -76,7 +124,23 @@ function Block({ block, vorspann }: { block: SkriptBlock; vorspann: boolean }) {
           />
         ))}
       </div>
-    </div>
+    );
+  }
+
+  return (
+    <>
+      {inGruppen(block.zeilen).map((gruppe, index) =>
+        gruppe.hinweis ? (
+          <Notiz key={index} zeilen={gruppe.zeilen} />
+        ) : (
+          <Feld key={index}>
+            {gruppe.zeilen.map((zeile, zeilenIndex) => (
+              <p key={zeilenIndex} dangerouslySetInnerHTML={{ __html: zeile.html }} />
+            ))}
+          </Feld>
+        ),
+      )}
+    </>
   );
 }
 
@@ -89,7 +153,7 @@ export function SkriptAbschnitte({ abschnitte }: { abschnitte: SkriptAbschnitt[]
           id={abschnitt.id}
           // scroll-mt: die schwebende Navigation darf die Überschrift nicht
           // verdecken, wenn man aus dem Inhaltsverzeichnis herspringt.
-          className="scroll-mt-[110px] rounded-[12px] border border-panel-border bg-surface-1 p-5 tbl:p-7"
+          className="scroll-mt-[150px] rounded-[12px] border border-panel-border bg-surface-1 p-5 tbl:p-7"
         >
           <header className="mb-5 flex items-start gap-3.5 border-b border-border-soft pb-5">
             <span

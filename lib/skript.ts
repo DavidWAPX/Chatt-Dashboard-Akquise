@@ -32,9 +32,16 @@ export type SkriptBlock =
       /** Enthält mindestens eine Zeile, die so in den Chat geht. */
       nachricht: boolean;
     }
-  | { art: "liste"; punkte: Array<{ html: string; text: string }> }
+  | { art: "liste"; punkte: SkriptListenPunkt[] }
   | { art: "trenner" }
   | { art: "bild"; src: string };
+
+export interface SkriptListenPunkt {
+  html: string;
+  text: string;
+  /** Ein Punkt, der so in den Chat geht — bekommt ein eigenes Feld. */
+  nachricht: boolean;
+}
 
 export interface SkriptZeile {
   html: string;
@@ -291,25 +298,83 @@ function istHinweis(zeile: RohZeile): boolean {
   if ((text.match(/[\u2192\u2794\u27A1]/gu) ?? []).length >= 2) return true;
 
   /*
-   * Kursiv allein reicht nicht: im Dokument liegt manche kursive Passage über
-   * der Anweisung UND der Nachricht darunter. Erst der Doppelpunkt am Ende
-   * macht daraus zuverlässig eine Ansage — "Bei „Ja“ kritisch nachfassen:"
-   * kündigt an, was danach kommt, statt selbst verschickt zu werden.
+   * Eine Zeile, die auf einen Doppelpunkt endet, kündigt an, was danach kommt
+   * — "Bei „Ja“ kritisch nachfassen:" oder "Erstgespräch für den Kunden
+   * buchen:". Verschickt wird so etwas nie.
    */
-  if (zeile.nurKursiv && /:\s*$/.test(text)) return true;
+  if (/:\s*$/.test(text)) return true;
 
   return HINWEIS_WORT.test(text);
 }
 
+/**
+ * Trennt eine vorangestellte Ansage vom Text dahinter.
+ *
+ * Im Dokument steht die Regieanweisung oft in derselben Zeile wie die
+ * Nachricht: "direkt hinter her: Morgen 12 Uhr oder lieber 19.00 Uhr?" — in
+ * den Chat geht davon nur der Teil hinter dem Doppelpunkt.
+ *
+ * Der Doppelpunkt muss ein Leerzeichen hinter sich haben, sonst zerschnitte
+ * die Regel jede URL ("https://…"). Und die Ansage davor darf keinen Satz
+ * enthalten, sonst würde sie mitten in einer Nachricht zuschlagen.
+ */
+const ANSAGE = /^([^.!?<>]{1,40}:)\s+([\s\S]+)$/;
+
+/**
+ * Ein Listenpunkt ist eine fertige Nachricht, wenn er den Platzhalter [Name]
+ * oder ein Emoji trägt. Das trennt die Followup-Vorschläge sauber von den
+ * Merksätzen unter "Grundprinzipien", die beides nie enthalten.
+ */
+function istNachrichtenPunkt(text: string): boolean {
+  if (text.includes("[Name]")) return true;
+  return /[\u{1F300}-\u{1FAFF}\u2600-\u27BF]/u.test(text);
+}
+
+/** Eine Zeile, die nur aus einem Link oder einer nackten Domain besteht. */
+function istNurLink(text: string): boolean {
+  return /^(https?:\/\/\S+|[\w-]+(\.[\w-]+)+(\/\S*)?\.?)$/.test(text.trim());
+}
+
 /** Macht aus den Rohzeilen die Zeilen, die die Seite anzeigt. */
 function inZeilen(roh: RohZeile[]): SkriptZeile[] {
-  return roh
-    .filter((zeile) => zeile.gefuellt)
-    .map((zeile) => ({
-      html: zeile.html.trim(),
-      text: zeile.text.trim(),
-      hinweis: istHinweis(zeile),
-    }));
+  const zeilen: SkriptZeile[] = [];
+
+  for (const zeile of roh) {
+    if (!zeile.gefuellt) continue;
+
+    const html = zeile.html.trim();
+    const text = zeile.text.trim();
+
+    if (istHinweis(zeile)) {
+      zeilen.push({ html, text, hinweis: true });
+      continue;
+    }
+
+    /*
+     * Ein nackter Link hinter einer Ankündigung mit Doppelpunkt gehört zu
+     * ihr: "Erstgespräch für den Kunden buchen:" nennt ein Werkzeug für den
+     * Chatter. Steht davor dagegen eine Pfeil-Anweisung ("→ Video als
+     * Nachricht abschicken."), ist der Link selbst die Nachricht.
+     */
+    const davor = zeilen[zeilen.length - 1];
+    if (istNurLink(text) && davor?.hinweis && /:$/.test(davor.text)) {
+      zeilen.push({ html, text, hinweis: true });
+      continue;
+    }
+
+    // Nur am reinen Text trennen: die Auszeichnung ließe sich nicht sauber
+    // mitteilen, und die Ansage braucht ohnehin keine.
+    const treffer = ANSAGE.exec(text);
+    if (treffer?.[1] && treffer[2] && !/^<a /.test(html)) {
+      zeilen.push({ html: escape(treffer[1]), text: treffer[1], hinweis: true });
+      zeilen.push({ html: escape(treffer[2]), text: treffer[2], hinweis: false });
+      continue;
+    }
+
+    zeilen.push({ html, text, hinweis: false });
+  }
+
+  return zeilen;
 }
 
 /**
@@ -345,6 +410,66 @@ function ankerFuer(titel: string, index: number): string {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
   return anker === "" ? `abschnitt-${index + 1}` : anker;
+}
+
+/**
+ * Zwei Feinheiten, die sich erst im Zusammenhang entscheiden lassen:
+ *
+ * 1. Ein Absatz, der nur aus einem Link besteht, gehört zur Nachricht davor —
+ *    im Dokument ist das ein Zeilenumbruch, kein neuer Gedanke.
+ * 2. Ein Absatz direkt vor einer Liste leitet sie ein und ist damit eine
+ *    Anweisung, kein Text für den Chat.
+ */
+function nachbearbeiten(bloecke: SkriptBlock[]): SkriptBlock[] {
+  const ergebnis: SkriptBlock[] = [];
+
+  for (const block of bloecke) {
+    const vorheriger = ergebnis[ergebnis.length - 1];
+
+    if (
+      block.art === "absatz" &&
+      vorheriger?.art === "absatz" &&
+      block.zeilen.every((zeile) => istNurLink(zeile.text))
+    ) {
+      vorheriger.zeilen = [...vorheriger.zeilen, ...block.zeilen];
+      vorheriger.nachricht = vorheriger.zeilen.some((zeile) => !zeile.hinweis);
+      continue;
+    }
+
+    /*
+     * Steht direkt hinter einer Aufzählung ein Absatz, gehört er zu deren
+     * letztem Punkt: das Dokument schreibt manche Erläuterung in den Punkt
+     * selbst und manche als eigenen Absatz dahinter. Zusammengeführt sehen
+     * alle Punkte gleich aus, statt dass einer aus der Reihe fällt.
+     */
+    const letzterPunkt =
+      vorheriger?.art === "liste"
+        ? vorheriger.punkte[vorheriger.punkte.length - 1]
+        : undefined;
+
+    if (
+      block.art === "absatz" &&
+      letzterPunkt &&
+      block.zeilen[0] &&
+      !block.zeilen[0].hinweis
+    ) {
+      letzterPunkt.html += `<br />${block.zeilen.map((zeile) => zeile.html).join("<br />")}`;
+      letzterPunkt.text += `\n${block.zeilen.map((zeile) => zeile.text).join("\n")}`;
+      letzterPunkt.nachricht = istNachrichtenPunkt(letzterPunkt.text);
+      continue;
+    }
+
+    ergebnis.push(block);
+  }
+
+  for (const [index, block] of ergebnis.entries()) {
+    const naechster = ergebnis[index + 1];
+    if (block.art !== "absatz" || naechster?.art !== "liste") continue;
+    block.zeilen = block.zeilen.map((zeile) => ({ ...zeile, hinweis: true }));
+    block.nachricht = false;
+  }
+
+  return ergebnis;
 }
 
 async function holeDokument(): Promise<SkriptErgebnis> {
@@ -409,7 +534,8 @@ async function holeDokument(): Promise<SkriptErgebnis> {
       const punkte = element
         .querySelectorAll("li")
         .map((li) => alsStueck(inline(li.childNodes, klassen, LEERER_STIL)))
-        .filter((punkt) => punkt.text.trim() !== "");
+        .filter((punkt) => punkt.text.trim() !== "")
+        .map((punkt) => ({ ...punkt, nachricht: istNachrichtenPunkt(punkt.text) }));
       if (punkte.length > 0) schreibe({ art: "liste", punkte });
       continue;
     }
@@ -464,6 +590,10 @@ async function holeDokument(): Promise<SkriptErgebnis> {
       zeilen,
       nachricht: zeilen.some((zeile) => !zeile.hinweis),
     });
+  }
+
+  for (const abschnitt of abschnitte) {
+    abschnitt.bloecke = nachbearbeiten(abschnitt.bloecke);
   }
 
   const ergebnis: SkriptErgebnis = {
