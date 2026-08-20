@@ -30,6 +30,12 @@ interface TableProps<T> {
    * page.
    */
   framed?: boolean;
+  /**
+   * Switches to cards at 1040px instead of 900px. For tables with six columns:
+   * below that width their content would have to be cut off, and a card says
+   * the same thing in full.
+   */
+  wide?: boolean;
 }
 
 /**
@@ -43,7 +49,12 @@ export function Table<T>({
   empty,
   caption,
   framed = false,
+  wide = false,
 }: TableProps<T>) {
+  // Ganze Klassennamen, keine zusammengesetzten: Tailwind findet Klassen nur,
+  // wenn sie wörtlich im Quelltext stehen.
+  const alsTabelle = wide ? "hidden tbl6:block" : "hidden tbl:block";
+  const alsKarten = wide ? "tbl6:hidden" : "tbl:hidden";
   // An empty table still shows its head, so the columns stay readable and the
   // layout does not pop into existence with the first row.
   const isEmpty = rows.length === 0;
@@ -59,7 +70,7 @@ export function Table<T>({
       {/* ≥ 900px */}
       <div
         className={cn(
-          "hidden tbl:block",
+          alsTabelle,
           framed && "overflow-hidden rounded-[12px] border border-border-default",
         )}
       >
@@ -129,11 +140,11 @@ export function Table<T>({
 
       {/* < 900px — one card per row */}
       {isEmpty && (
-        <div className="tbl:hidden">
+        <div className={alsKarten}>
           <EmptyState>{empty}</EmptyState>
         </div>
       )}
-      <ul className="flex flex-col gap-3 tbl:hidden">
+      <ul className={cn("flex flex-col gap-3", alsKarten)}>
         {rows.map((row) => (
           <li
             key={rowKey(row)}

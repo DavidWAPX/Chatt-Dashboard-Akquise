@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { RefreshCw, Search, X } from "lucide-react";
+import { FileText, Handshake, PhoneCall, RefreshCw, Search, X } from "lucide-react";
 import { Table, type Column } from "@/components/ui/Table";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
@@ -99,32 +99,57 @@ export function LeadListe({ profileName, leads, fetchedAt, problem }: LeadListeP
 
   const filtered = search.trim() !== "" || status !== ALL;
 
+  /*
+   * Spaltenbreiten sind gerechnet, nicht geschätzt. Die Tabelle ist höchstens
+   * 1128px breit (content-shell 1240 − 48 Seitenrand − 64 Kartenrand) und jede
+   * Zelle verbraucht 40px Innenabstand. Sieben Spalten hätten davon allein
+   * 280px gefressen — zu wenig für den breitesten Chip und drei Textbuttons
+   * (je 59px), weshalb sich Status und "Klick" vorher überlappt haben.
+   * Deshalb: E-Mail wandert unter den Namen, die drei Textspalten bekommen
+   * Icon-Buttons und kurze Köpfe.
+   *
+   * Die Prozente sind an im Browser gemessenen Werten ausgerichtet, nicht
+   * geschätzt: breitester Chip 189px ("Entscheidung ausstehend"), Telefon-
+   * nummer 118px. Bei 970px Tabellenbreite bleiben damit 202px für den Chip
+   * und 125px für die Nummer. Unter etwa 1000px Fensterbreite reicht der
+   * Platz für sechs Spalten nicht mehr; dann kürzen Chip, Name und Nummer mit
+   * "…" statt sich zu überlappen — der volle Wert steht jeweils im title.
+   */
   const columns: ReadonlyArray<Column<Lead>> = [
     {
-      key: "name",
-      head: "Name",
+      key: "lead",
+      head: "Lead",
       isTitle: true,
-      width: "20%",
+      width: "25%",
       cell: (lead) => (
-        <span className="font-sans text-[14px] font-medium text-text-1">
-          {lead.name || "—"}
-        </span>
-      ),
-    },
-    {
-      key: "email",
-      head: "Email",
-      width: "24%",
-      cell: (lead) => (
-        <span className="text-[13px] text-text-2 break-anywhere">{lead.email || "—"}</span>
+        <div className="flex min-w-0 flex-col gap-[3px]">
+          {/* In der Tabelle einzeilig mit "…", damit ein langer Name die Zeile
+              nicht höher macht als alle anderen; in der Kartenansicht darf er
+              umbrechen, da ist Platz. Der volle Wert steht im title. */}
+          <span
+            title={lead.name || undefined}
+            className="break-anywhere tbl6:truncate font-sans text-[14px] font-medium leading-[1.35] text-text-1"
+          >
+            {lead.name || "—"}
+          </span>
+          <span
+            title={lead.email || undefined}
+            className="break-anywhere tbl6:truncate text-[12.5px] leading-[1.35] text-text-2"
+          >
+            {lead.email || "—"}
+          </span>
+        </div>
       ),
     },
     {
       key: "telefon",
       head: "Telefon",
-      width: "16%",
+      width: "18%",
       cell: (lead) => (
-        <span className="whitespace-nowrap text-[13px] tnum text-text-2">
+        <span
+          title={formatPhone(lead.telefon)}
+          className="block tbl6:truncate text-[13px] tnum text-text-2"
+        >
           {formatPhone(lead.telefon)}
         </span>
       ),
@@ -132,16 +157,18 @@ export function LeadListe({ profileName, leads, fetchedAt, problem }: LeadListeP
     {
       key: "lead_status",
       head: "Lead Status",
-      width: "16%",
+      width: "25%",
       cell: (lead) => <LeadStatusChip status={lead.lead_status} />,
     },
     {
       key: "notizen",
       head: "Notizen",
-      width: "8%",
+      width: "11%",
       cell: (lead) => (
         <InfoButton
           text={lead.notizen}
+          label="Notizen"
+          icon={FileText}
           onOpen={() =>
             setOpen({ title: "Notizen", lead: lead.name, text: lead.notizen })
           }
@@ -150,11 +177,13 @@ export function LeadListe({ profileName, leads, fetchedAt, problem }: LeadListeP
     },
     {
       key: "setting_activity",
-      head: "Setting Aktivität",
-      width: "8%",
+      head: "Setting",
+      width: "10.5%",
       cell: (lead) => (
         <InfoButton
           text={lead.setting_activity}
+          label="Setting Aktivität"
+          icon={PhoneCall}
           onOpen={() =>
             setOpen({
               title: "Setting Aktivität",
@@ -167,11 +196,13 @@ export function LeadListe({ profileName, leads, fetchedAt, problem }: LeadListeP
     },
     {
       key: "closing_activity",
-      head: "Closing Aktivität",
-      width: "8%",
+      head: "Closing",
+      width: "10.5%",
       cell: (lead) => (
         <InfoButton
           text={lead.closing_activity}
+          label="Closing Aktivität"
+          icon={Handshake}
           onOpen={() =>
             setOpen({
               title: "Closing Aktivität",
@@ -282,6 +313,7 @@ export function LeadListe({ profileName, leads, fetchedAt, problem }: LeadListeP
 
         <Table
           framed
+          wide
           caption="Lead Status"
           rows={visible}
           rowKey={(lead) => lead.id}

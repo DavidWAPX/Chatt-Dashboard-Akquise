@@ -117,6 +117,9 @@
   --breakpoint-xs: 520px;
   --breakpoint-nav: 720px;
   --breakpoint-tbl: 900px;
+  /* Sechs Spalten (Lead-Liste) brauchen mehr Anlauf als vier: unter 1040px
+     müsste die Statusspalte kürzen, also zeigt sie dort lieber Karten. */
+  --breakpoint-tbl6: 1040px;
 
   /* Radii — reference: --radius-sm/md/lg */
   --radius-token-sm: 4px;
@@ -279,6 +282,10 @@
   padding: 6px 14px;
   font-size: 13px;
   color: var(--tone);
+  /* Der Chip darf nie breiter werden als seine Tabellenzelle. Ohne das läuft
+     ein langer Status ("Follow up (nicht anrufen)" misst 164px) über die
+     Spaltenkante hinaus und legt sich über die Nachbarspalte. */
+  max-width: 100%;
 }
 
 .chip-won { --tone: var(--status-won); }

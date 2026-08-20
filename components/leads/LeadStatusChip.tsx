@@ -75,13 +75,23 @@ export function LeadStatusChip({ status }: { status: string }) {
 
   const tone = toneFor(label);
 
+  // Der Text steckt in einem eigenen Span: so kann er im Notfall mit "…"
+  // abgeschnitten werden, statt aus der Zelle heraus in die Nachbarspalte zu
+  // laufen. `title` hält den vollen Wortlaut beim Draufzeigen bereit.
   if (tone === "neutral") {
     return (
-      <span className="inline-flex items-center whitespace-nowrap rounded-[6px] border border-border-default bg-surface-2 px-3.5 py-1.5 text-[13px] text-text-1">
-        {label}
+      <span
+        title={label}
+        className="inline-flex max-w-full items-center rounded-[6px] border border-border-default bg-surface-2 px-3.5 py-1.5 text-[13px] text-text-1"
+      >
+        <span className="truncate">{label}</span>
       </span>
     );
   }
 
-  return <span className={cn("chip-status", TONE_CLASS[tone])}>{label}</span>;
+  return (
+    <span className={cn("chip-status", TONE_CLASS[tone])} title={label}>
+      <span className="truncate">{label}</span>
+    </span>
+  );
 }
