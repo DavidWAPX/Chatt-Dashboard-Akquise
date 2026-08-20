@@ -1,7 +1,9 @@
 # Remote Chatter Dashboard
 
 Internes Tracking-Werkzeug für Remote Chatter: Kennzahlen der Kaltakquise auf TikTok,
-Instagram, X und Facebook erfassen und über Tag / Woche / Monat / Jahr auswerten.
+Instagram und Facebook erfassen und über Tag / Woche / Monat / Jahr auswerten.
+Dazu das Chatting-Skript (live aus einem Google-Dokument) und der Weg zur
+Terminbuchung.
 
 Next.js 15 (App Router) · TypeScript strict · Tailwind CSS · Supabase (Auth + Postgres + RLS) ·
 recharts · lucide-react · date-fns
@@ -30,8 +32,9 @@ Unter [supabase.com](https://supabase.com) ein Projekt erstellen. Die drei Werte
 ### 2 — Migration einspielen
 
 Den Inhalt von `supabase/migrations/0001_init.sql` im *SQL Editor* des Supabase-Dashboards
-ausführen. Legt Tabellen, RLS-Policies, den `updated_at`-Trigger und die beiden Startgruppen
-`Gruppe 1` und `Gruppe 2` an.
+ausführen. Legt Tabellen, RLS-Policies und den `updated_at`-Trigger an. Die Tabellen
+`groups`/`profile_groups` legt die Migration mit an, die App benutzt sie aber nicht mehr —
+Benutzergruppen wurden entfernt.
 
 Alternativ mit der Supabase CLI:
 
@@ -107,20 +110,36 @@ app/
     tageseintrag/       Workreport — Zahlen erfassen
     leads/              Meine Leads — aus der Google-Tabelle
     admin/              Admin-Guard: role === 'admin', zwei Reiter
-      statistik/        Benutzer Übersicht
+      statistik/        Benutzer Übersicht (Chatter Tracking)
       benutzer/         Benutzer bearbeiten
+    skript/             Chatting Skript, live aus dem Google-Dokument
   api/admin/users/      Route Handler, nur Service-Role
 components/
-  ui/                   Button, Input, Select, Modal, Segmented, Chip, Table, StatCard …
+  ui/                   Button, Input, Select, Modal, Segmented, Table, StatCard,
+                        PlatformLogo …
+  skript/               Darstellung des Chatting-Skripts + Kopieren-Knopf
   analytics/            Auswertung — geteilt von /(app)/page und /admin/statistik
 lib/
   leads.ts              liest die Google-Tabelle serverseitig und filtert je Chatter
   csv.ts                CSV-Parser (ohne Fremdbibliothek)
   supabase/             client (Browser) · server (RSC) · admin (Service-Role)
-  metrics.ts            Die sechs Kennzahlen an einer Stelle definiert
+  metrics.ts            Die drei Kennzahlen und die Plattformen an einer Stelle
+  skript.ts             holt das Chatting-Skript aus Google Docs und zerlegt es
   date-ranges.ts        Tag / Woche / Monat / Jahr, Wochen ab Montag
 supabase/migrations/
 ```
+
+## Chatting Skript
+
+Das Skript steht in einem Google-Dokument und wird dort gepflegt. Die App holt es
+serverseitig, zerlegt es (`lib/skript.ts`) und baut es im eigenen Design neu auf —
+Googles HTML wird nie direkt eingebettet.
+
+- Das Dokument muss auf *Jeder mit dem Link – Betrachter* stehen.
+- Anderes Dokument? `SKRIPT_DOC_HTML_URL` in `.env.local` setzen
+  (`https://docs.google.com/document/d/<id>/export?format=html`).
+- Änderungen erscheinen innerhalb einer Minute (Zwischenspeicher in `lib/skript.ts`).
+- Kapitel erkennt der Parser an den Kreis-Markern ①…⑧ / ⊙ am Zeilenanfang.
 
 ## Meine Leads
 

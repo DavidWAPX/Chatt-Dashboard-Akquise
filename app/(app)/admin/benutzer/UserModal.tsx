@@ -5,14 +5,12 @@ import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
-import { CheckboxChip } from "@/components/ui/Chip";
-import type { AdminUserPayload, Group, ProfileWithGroups, UserRole } from "@/lib/types";
+import type { AdminUserPayload, Profile, UserRole } from "@/lib/types";
 
 interface UserModalProps {
   open: boolean;
   /** null = create, otherwise edit. */
-  user: ProfileWithGroups | null;
-  groups: readonly Group[];
+  user: Profile | null;
   /** The signed-in admin, who may not demote themselves. */
   currentUserId: string;
   onClose: () => void;
@@ -27,7 +25,6 @@ const ROLE_OPTIONS = [
 export function UserModal({
   open,
   user,
-  groups,
   currentUserId,
   onClose,
   onSubmit,
@@ -35,7 +32,6 @@ export function UserModal({
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<UserRole>("user");
-  const [groupIds, setGroupIds] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
@@ -45,7 +41,6 @@ export function UserModal({
     setName(user?.name ?? "");
     setEmail(user?.email ?? "");
     setRole(user?.role ?? "user");
-    setGroupIds(user?.groups.map((group) => group.id) ?? []);
     setError(null);
     setDirty(false);
   }, [open, user]);
@@ -80,7 +75,6 @@ export function UserModal({
       name: name.trim(),
       email: email.trim(),
       role,
-      groupIds,
     });
 
     setSaving(false);
@@ -152,34 +146,6 @@ export function UserModal({
           <p className="mt-3 text-[13px] text-text-2">
             Du kannst dir die Admin-Rolle nicht selbst entziehen.
           </p>
-        )}
-
-        <p className="mt-8 font-display text-[12px] uppercase tracking-[0.05em] text-text-2">
-          Zugewiesene Gruppen
-        </p>
-
-        {groups.length === 0 ? (
-          <p className="mt-3 text-[14px] text-text-3">
-            Noch keine Gruppen angelegt. Leg unter der Tabelle eine an.
-          </p>
-        ) : (
-          <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {groups.map((group) => (
-              <CheckboxChip
-                key={group.id}
-                label={group.name}
-                checked={groupIds.includes(group.id)}
-                onChange={(checked) => {
-                  setGroupIds((current) =>
-                    checked
-                      ? [...current, group.id]
-                      : current.filter((id) => id !== group.id),
-                  );
-                  setDirty(true);
-                }}
-              />
-            ))}
-          </div>
         )}
 
         {error && (

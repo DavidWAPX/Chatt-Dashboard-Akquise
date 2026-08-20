@@ -1,12 +1,12 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, type ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
 interface SegmentedProps<T extends string> {
   /** Announced to screen readers; render a visible label separately if wanted. */
   label: string;
-  options: ReadonlyArray<{ key: T; label: string }>;
+  options: ReadonlyArray<{ key: T; label: string; icon?: ReactNode }>;
   value: T;
   onChange: (value: T) => void;
   className?: string;
@@ -67,13 +67,15 @@ export function Segmented<T extends string>({
             onClick={() => onChange(option.key)}
             onKeyDown={(event) => handleKeyDown(event, index)}
             className={cn(
-              "shrink-0 whitespace-nowrap rounded-[4px] px-[16px] py-2 text-[13px]",
+              "inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-[4px] px-[16px] py-2 text-[13px]",
               "transition-colors duration-[var(--dur)] ease-[var(--ease-ref)]",
               selected
                 ? "bg-gold font-semibold text-on-gold"
                 : "text-text-2 hover:text-text-1",
             )}
           >
+            {/* Das Logo erbt die Textfarbe, wird also mit ausgewählt. */}
+            {option.icon}
             {option.label}
           </button>
         );

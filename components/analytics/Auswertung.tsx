@@ -13,13 +13,10 @@ import { Panel } from "@/components/ui/Panel";
 import { Segmented } from "@/components/ui/Segmented";
 import { StatCard } from "@/components/ui/StatCard";
 import { Table, type Column } from "@/components/ui/Table";
-import { Chip } from "@/components/ui/Chip";
-import { Select } from "@/components/ui/Select";
+import { PlatformLogo } from "@/components/ui/PlatformLogo";
 import { Button, IconButton } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { VerlaufsDiagramm } from "./VerlaufsDiagramm";
-import { Trichter } from "./Trichter";
-import { QuotenRinge } from "./QuotenRinge";
 import { createClient } from "@/lib/supabase/client";
 import {
   METRICS,
@@ -28,7 +25,6 @@ import {
   filterByPlatform,
   formatNumber,
   isPlatform,
-  percentChange,
   sumMetrics,
 } from "@/lib/metrics";
 import {
@@ -40,17 +36,20 @@ import {
   getPeriod,
   isRangeKey,
   parseAnchor,
-  previousPeriod,
   shiftAnchor,
   toISODate,
 } from "@/lib/date-ranges";
-import type { Entry, MetricKey, Platform } from "@/lib/types";
+import type { Entry, Platform } from "@/lib/types";
 
 const PAGE_SIZE = 30;
 
 const PLATFORM_OPTIONS = [
   { key: "all" as const, label: "Alle" },
-  ...PLATFORMS.map((p) => ({ key: p.key, label: p.label })),
+  ...PLATFORMS.map((p) => ({
+    key: p.key,
+    label: p.label,
+    icon: <PlatformLogo platform={p.key} size={14} />,
+  })),
 ];
 
 interface AuswertungProps {
@@ -90,17 +89,11 @@ export function Auswertung({ profileId, heading }: AuswertungProps) {
 
   const anchor = useMemo(() => parseAnchor(dateISO || null), [dateISO]);
   const period = useMemo(() => getPeriod(range, anchor), [range, anchor]);
-  const previous = useMemo(
-    () => previousPeriod(range, anchor),
-    [range, anchor],
-  );
 
   const [entries, setEntries] = useState<Entry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [visibleRows, setVisibleRows] = useState(PAGE_SIZE);
-  const [metricA, setMetricA] = useState<MetricKey>("first_messages");
-  const [metricB, setMetricB] = useState<MetricKey | "none">("conversations");
 
   /** Writes the filter into the URL without holding up the render. */
   const syncUrl = useCallback(
@@ -118,7 +111,11 @@ export function Auswertung({ profileId, heading }: AuswertungProps) {
     [router, searchParams],
   );
 
-  // One query spanning previous + current period, split locally afterwards.
+  /*
+   * Nur noch der gewählte Zeitraum wird geladen. Vorher spannte die Abfrage
+   * zusätzlich die Vorperiode auf, um Veränderungen auszurechnen — die
+   * Vergleichsanzeige ist raus, also holt die Seite auch nur noch die Hälfte.
+   */
   useEffect(() => {
     let cancelled = false;
 
@@ -131,7 +128,7 @@ export function Auswertung({ profileId, heading }: AuswertungProps) {
         .from("entries")
         .select("*")
         .eq("profile_id", profileId)
-        .gte("entry_date", previous.startISO)
+        .gte("entry_date", period.startISO)
         .lte("entry_date", period.endISO)
         .order("entry_date", { ascending: false });
 
@@ -150,38 +147,18 @@ export function Auswertung({ profileId, heading }: AuswertungProps) {
     return () => {
       cancelled = true;
     };
-  }, [profileId, previous.startISO, period.endISO]);
+  }, [profileId, period.startISO, period.endISO]);
 
   useEffect(() => {
     setVisibleRows(PAGE_SIZE);
   }, [range, platform, period.startISO]);
 
   const currentEntries = useMemo(
-    () =>
-      filterByPlatform(entries, platform).filter(
-        (entry) =>
-          entry.entry_date >= period.startISO &&
-          entry.entry_date <= period.endISO,
-      ),
-    [entries, platform, period.startISO, period.endISO],
-  );
-
-  const previousEntries = useMemo(
-    () =>
-      filterByPlatform(entries, platform).filter(
-        (entry) =>
-          entry.entry_date >= previous.startISO &&
-          entry.entry_date <= previous.endISO,
-      ),
-    [entries, platform, previous.startISO, previous.endISO],
+    () => filterByPlatform(entries, platform),
+    [entries, platform],
   );
 
   const totals = useMemo(() => sumMetrics(currentEntries), [currentEntries]);
-  const previousTotals = useMemo(
-    () => sumMetrics(previousEntries),
-    [previousEntries],
-  );
-
   const forwardAllowed = canGoForward(range, anchor);
 
   /**
@@ -205,7 +182,7 @@ export function Auswertung({ profileId, heading }: AuswertungProps) {
             .reduce((sum, entry) => sum + entry[metric.key], 0),
         ),
       }),
-      {} as Record<MetricKey, number[]>,
+      {} as Record<string, number[]>,
     );
   }, [range, period, currentEntries]);
 
@@ -214,6 +191,7 @@ export function Auswertung({ profileId, heading }: AuswertungProps) {
       key: "date",
       head: "Datum",
       isTitle: true,
+      width: "26%",
       cell: (row) => (
         <span className="font-sans text-[14px] font-medium tnum text-text-1">
           {formatDateLabel(row.entry_date)}
@@ -223,22 +201,28 @@ export function Auswertung({ profileId, heading }: AuswertungProps) {
     {
       key: "platform",
       head: "Plattform",
-      cell: (row) => <Chip>{PLATFORM_LABEL[row.platform]}</Chip>,
+      width: "22%",
+      cell: (row) => (
+        <span className="inline-flex items-center gap-2 whitespace-nowrap text-[13px] text-text-1">
+          <PlatformLogo platform={row.platform} size={15} />
+          {PLATFORM_LABEL[row.platform]}
+        </span>
+      ),
     },
     ...METRICS.map((metric) => ({
       key: metric.key,
       head: metric.short,
       align: "right" as const,
+      width: `${Math.round(52 / METRICS.length)}%`,
       cell: (row: Entry) => (
-        <span
-          className="text-[14px] tnum text-text-2"
-          title={metric.label}
-        >
+        <span className="text-[14px] tnum text-text-1" title={metric.label}>
           {formatNumber(row[metric.key])}
         </span>
       ),
     })),
   ];
+
+  const leer = !loading && currentEntries.length === 0;
 
   return (
     <>
@@ -248,11 +232,12 @@ export function Auswertung({ profileId, heading }: AuswertungProps) {
         </h2>
       )}
 
-      {/* Filters sit directly on the page — no box around them. */}
-      <div className="flex flex-col gap-6">
+      {/* Filterleiste: ein Kasten statt drei lose Zeilen, damit klar ist,
+          dass Zeitraum, Blättern und Plattform zusammengehören. */}
+      <div className="flex flex-col gap-5 rounded-[12px] border border-panel-border bg-surface-1 p-5">
         <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
           <div className="flex flex-wrap items-center gap-3">
-            <span className="shrink-0 text-[14px] font-normal text-text-2">Zeitraum:</span>
+            <span className="shrink-0 text-[13px] text-text-3">Zeitraum</span>
             <Segmented
               label="Zeitraum"
               value={range}
@@ -265,7 +250,7 @@ export function Auswertung({ profileId, heading }: AuswertungProps) {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <span className="shrink-0 text-[14px] font-normal text-text-2">Plattform:</span>
+            <span className="shrink-0 text-[13px] text-text-3">Plattform</span>
             <Segmented
               label="Plattform"
               value={platform}
@@ -278,9 +263,9 @@ export function Auswertung({ profileId, heading }: AuswertungProps) {
           </div>
         </div>
 
-        <div className="flex items-center justify-center gap-4">
+        <div className="flex items-center justify-center gap-4 border-t border-border-soft pt-5">
           <IconButton
-            label="Vorherige Periode"
+            label="Vorheriger Zeitraum"
             onClick={() => {
               const next = toISODate(shiftAnchor(range, anchor, -1));
               setDateISO(next);
@@ -292,18 +277,18 @@ export function Auswertung({ profileId, heading }: AuswertungProps) {
 
           <p
             aria-live="polite"
-            className="min-w-0 text-center text-[15px] font-medium tracking-[0.01em] text-text-1"
+            className="min-w-0 text-center font-display text-[16px] font-medium uppercase tracking-[0.04em] text-text-1"
           >
             {period.label}
           </p>
 
           <IconButton
-            label="Nächste Periode"
+            label="Nächster Zeitraum"
             disabled={!forwardAllowed}
             title={
               forwardAllowed
-                ? "Nächste Periode"
-                : "Weiter geht es nicht — das ist die aktuelle Periode."
+                ? "Nächster Zeitraum"
+                : "Weiter geht es nicht — das ist der aktuelle Zeitraum."
             }
             onClick={() => {
               const next = toISODate(shiftAnchor(range, anchor, 1));
@@ -328,86 +313,46 @@ export function Auswertung({ profileId, heading }: AuswertungProps) {
             key={metric.key}
             label={metric.label}
             value={totals[metric.key]}
-            delta={totals[metric.key] - previousTotals[metric.key]}
-            deltaPercent={percentChange(
-              totals[metric.key],
-              previousTotals[metric.key],
-            )}
             series={seriesByMetric?.[metric.key]}
+            hint={
+              platform === "all"
+                ? `Alle Plattformen · ${period.label}`
+                : `${PLATFORM_LABEL[platform]} · ${period.label}`
+            }
           />
         ))}
       </div>
 
-      <Panel bare eyebrow={period.label} title="Trichter">
-        <p className="-mt-2 mb-6 max-w-[62ch] text-[14px] text-text-2">
-          Wie viel von der Kaltakquise am Ende übrig bleibt — vom Opener bis zur
-          qualifizierten Person.
-        </p>
-        {loading ? (
-          <EmptyState>Zahlen werden geladen…</EmptyState>
-        ) : (
-          <div className="flex flex-col gap-8">
-            <Trichter totals={totals} />
-            <QuotenRinge totals={totals} />
-          </div>
-        )}
-      </Panel>
-
       <Panel bare eyebrow={period.label} title="Verlauf">
-        <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:max-w-[560px]">
-          <Select
-            label="Kennzahl 1"
-            value={metricA}
-            onChange={(event) => setMetricA(event.target.value as MetricKey)}
-            options={METRICS.map((metric) => ({
-              value: metric.key,
-              label: metric.label,
-            }))}
-          />
-          <Select
-            label="Kennzahl 2"
-            value={metricB}
-            onChange={(event) =>
-              setMetricB(event.target.value as MetricKey | "none")
-            }
-            options={[
-              { value: "none", label: "Keine" },
-              ...METRICS.map((metric) => ({
-                value: metric.key,
-                label: metric.label,
-              })),
-            ]}
-          />
-        </div>
+        <p className="-mt-3 mb-6 max-w-[62ch] text-[14px] text-text-2">
+          Alle drei Zahlen auf einen Blick. Fahr mit der Maus über das Diagramm,
+          dann siehst du die genauen Werte für den jeweiligen Punkt.
+        </p>
 
         {loading ? (
           <EmptyState>Zahlen werden geladen…</EmptyState>
-        ) : currentEntries.length === 0 ? (
+        ) : leer ? (
           <EmptyState>
             Für diesen Zeitraum gibt es noch keine Zahlen. Trag deinen Tag unter
             Workreport ein.
           </EmptyState>
         ) : (
-          <VerlaufsDiagramm
-            entries={currentEntries}
-            range={range}
-            period={period}
-            selected={[metricA, metricB === "none" ? null : metricB]}
-          />
+          <VerlaufsDiagramm entries={currentEntries} range={range} period={period} />
         )}
       </Panel>
 
-      <Panel bare eyebrow={period.label} title="Alle Einträge">
+      <Panel bare eyebrow={period.label} title="Alle Workreports">
         {loading ? (
           <EmptyState>Zahlen werden geladen…</EmptyState>
         ) : (
           <>
             <Table
-              caption={`Einträge im Zeitraum ${period.label}`}
+              framed
+              caption={`Workreports im Zeitraum ${period.label}`}
               rows={currentEntries.slice(0, visibleRows)}
               rowKey={(row) => row.id}
               columns={columns}
-              empty="Noch keine Einträge. Trag deinen ersten Tag unter Workreport ein."
+              empty="Noch keine Workreports. Trag deinen ersten Tag unter Workreport ein."
             />
 
             {currentEntries.length > visibleRows && (

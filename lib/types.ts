@@ -1,14 +1,14 @@
 export type UserRole = "user" | "admin";
 
-export type Platform = "tiktok" | "instagram" | "x" | "facebook";
+/* "x" ist aus der Oberfläche verschwunden, bleibt aber im Typ: der
+   Datenbank-Enum kennt den Wert weiter, und alte Zeilen sollen nicht
+   plötzlich einem unbekannten Typ entsprechen. */
+export type Platform = "tiktok" | "instagram" | "facebook" | "x";
 
-export type MetricKey =
-  | "first_messages"
-  | "conversations"
-  | "followups"
-  | "appointments"
-  | "qualified"
-  | "unqualified";
+/* Drei Kennzahlen statt sechs. Die Spalten conversations, qualified und
+   unqualified stehen weiter in der Datenbank (not null default 0) und stören
+   dort niemanden — die App schreibt und liest sie schlicht nicht mehr. */
+export type MetricKey = "first_messages" | "followups" | "appointments";
 
 /* These are type aliases rather than interfaces on purpose: supabase-js
    requires rows to be assignable to Record<string, unknown>, and only type
@@ -20,17 +20,6 @@ export type Profile = {
   name: string;
   role: UserRole;
   created_at: string;
-};
-
-export type Group = {
-  id: string;
-  name: string;
-  created_at: string;
-};
-
-export type ProfileGroup = {
-  profile_id: string;
-  group_id: string;
 };
 
 export type MetricValues = Record<MetricKey, number>;
@@ -59,18 +48,12 @@ export type Lead = {
   termin_buchungsdatum: string;
 };
 
-/** A profile joined with the groups it belongs to — what the admin list renders. */
-export type ProfileWithGroups = Profile & {
-  groups: Group[];
-};
-
 /** Payload for creating or updating a user through app/api/admin/users. */
 export type AdminUserPayload = {
   id?: string;
   name: string;
   email: string;
   role: UserRole;
-  groupIds: string[];
 };
 
 /**
@@ -85,21 +68,6 @@ export type Database = {
         Row: Profile;
         Insert: Omit<Profile, "created_at"> & { created_at?: string };
         Update: Partial<Omit<Profile, "id">>;
-        Relationships: [];
-      };
-      groups: {
-        Row: Group;
-        Insert: Omit<Group, "id" | "created_at"> & {
-          id?: string;
-          created_at?: string;
-        };
-        Update: Partial<Omit<Group, "id">>;
-        Relationships: [];
-      };
-      profile_groups: {
-        Row: ProfileGroup;
-        Insert: ProfileGroup;
-        Update: Partial<ProfileGroup>;
         Relationships: [];
       };
       entries: {

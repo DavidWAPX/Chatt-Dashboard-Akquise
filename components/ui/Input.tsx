@@ -66,6 +66,8 @@ interface NumberInputProps
   value: number | "";
   onValueChange: (value: number | "") => void;
   error?: string;
+  /** One plain sentence under the field explaining what to count. */
+  hint?: string;
 }
 
 /**
@@ -73,7 +75,10 @@ interface NumberInputProps
  * the way in rather than validated afterwards. An empty field counts as 0.
  */
 export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
-  function NumberInput({ label, value, onValueChange, error, className, id, ...rest }, ref) {
+  function NumberInput(
+    { label, value, onValueChange, error, hint, className, id, ...rest },
+    ref,
+  ) {
     const generatedId = useId();
     const inputId = id ?? generatedId;
     const messageId = `${inputId}-message`;
@@ -95,7 +100,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
           autoComplete="off"
           value={value === "" ? "" : String(value)}
           aria-invalid={error ? true : undefined}
-          aria-describedby={error ? messageId : undefined}
+          aria-describedby={error || hint ? messageId : undefined}
           onChange={(event) => {
             const digitsOnly = event.target.value.replace(/[^0-9]/g, "");
             if (digitsOnly === "") {
@@ -113,9 +118,15 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
           )}
           {...rest}
         />
-        {error && (
-          <p id={messageId} className="mt-2 text-[13px] text-danger">
-            {error}
+        {(error || hint) && (
+          <p
+            id={messageId}
+            className={cn(
+              "mt-2 text-[12.5px] leading-[1.45]",
+              error ? "text-danger" : "text-text-3",
+            )}
+          >
+            {error ?? hint}
           </p>
         )}
       </div>

@@ -5,31 +5,22 @@ import { Pencil, Trash2, UserPlus } from "lucide-react";
 import { Panel } from "@/components/ui/Panel";
 import { Button, IconButton } from "@/components/ui/Button";
 import { Table, type Column } from "@/components/ui/Table";
-import { Chip } from "@/components/ui/Chip";
 import { Modal } from "@/components/ui/Modal";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { createClient } from "@/lib/supabase/client";
-import type {
-  AdminUserPayload,
-  Group,
-  Profile,
-  ProfileGroup,
-  ProfileWithGroups,
-} from "@/lib/types";
+import type { AdminUserPayload, Profile } from "@/lib/types";
 import { UserModal } from "./UserModal";
-import { GroupManager } from "./GroupManager";
 
 const ROLE_LABEL: Record<string, string> = { user: "Nutzer", admin: "Admin" };
 
 export function UserAdmin({ currentUserId }: { currentUserId: string }) {
-  const [users, setUsers] = useState<ProfileWithGroups[]>([]);
-  const [groups, setGroups] = useState<Group[]>([]);
+  const [users, setUsers] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const [modalOpen, setModalOpen] = useState(false);
-  const [editing, setEditing] = useState<ProfileWithGroups | null>(null);
-  const [pendingDelete, setPendingDelete] = useState<ProfileWithGroups | null>(null);
+  const [editing, setEditing] = useState<Profile | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<Profile | null>(null);
   const [deleting, setDeleting] = useState(false);
 
   const load = useCallback(async () => {
@@ -37,31 +28,18 @@ export function UserAdmin({ currentUserId }: { currentUserId: string }) {
     setError(null);
 
     const supabase = createClient();
-    const [profilesResult, groupsResult, linksResult] = await Promise.all([
-      supabase.from("profiles").select("*").order("name"),
-      supabase.from("groups").select("*").order("name"),
-      supabase.from("profile_groups").select("*"),
-    ]);
+    const { data, error: loadError } = await supabase
+      .from("profiles")
+      .select("*")
+      .order("name");
 
-    if (profilesResult.error || groupsResult.error || linksResult.error) {
+    if (loadError) {
       setError("Die Benutzerdaten konnten nicht geladen werden. Lade die Seite neu.");
       setLoading(false);
       return;
     }
 
-    const allGroups = (groupsResult.data ?? []) as Group[];
-    const links = (linksResult.data ?? []) as ProfileGroup[];
-
-    setGroups(allGroups);
-    setUsers(
-      ((profilesResult.data ?? []) as Profile[]).map((profile) => ({
-        ...profile,
-        groups: links
-          .filter((link) => link.profile_id === profile.id)
-          .map((link) => allGroups.find((group) => group.id === link.group_id))
-          .filter((group): group is Group => group !== undefined),
-      })),
-    );
+    setUsers((data ?? []) as Profile[]);
     setLoading(false);
   }, []);
 
@@ -109,11 +87,12 @@ export function UserAdmin({ currentUserId }: { currentUserId: string }) {
     await load();
   }
 
-  const columns: ReadonlyArray<Column<ProfileWithGroups>> = [
+  const columns: ReadonlyArray<Column<Profile>> = [
     {
       key: "name",
       head: "Name",
       isTitle: true,
+      width: "28%",
       cell: (row) => (
         <span className="font-sans text-[14px] font-medium text-text-1 break-anywhere">
           {row.name}
@@ -123,6 +102,7 @@ export function UserAdmin({ currentUserId }: { currentUserId: string }) {
     {
       key: "email",
       head: "E-Mail",
+      width: "36%",
       cell: (row) => (
         <span className="text-[13px] text-text-2 break-anywhere">{row.email}</span>
       ),
@@ -130,28 +110,16 @@ export function UserAdmin({ currentUserId }: { currentUserId: string }) {
     {
       key: "role",
       head: "Rolle",
+      width: "16%",
       cell: (row) => (
         <span className="text-[13px] text-text-2">{ROLE_LABEL[row.role] ?? row.role}</span>
       ),
     },
     {
-      key: "groups",
-      head: "Gruppen",
-      cell: (row) =>
-        row.groups.length === 0 ? (
-          <span className="text-[13px] text-text-3">—</span>
-        ) : (
-          <div className="flex flex-wrap justify-end gap-2 tbl:justify-start">
-            {row.groups.map((group) => (
-              <Chip key={group.id}>{group.name}</Chip>
-            ))}
-          </div>
-        ),
-    },
-    {
       key: "actions",
       head: "Aktionen",
       isActions: true,
+      width: "20%",
       align: "right",
       cell: (row) => {
         const isSelf = row.id === currentUserId;
@@ -188,8 +156,8 @@ export function UserAdmin({ currentUserId }: { currentUserId: string }) {
   return (
     <>
       <Panel
-        eyebrow="User Management"
-        title="Team Management"
+        eyebrow="Admin"
+        title="Benutzer verwalten"
         action={
           <Button
             icon={<UserPlus size={16} aria-hidden="true" />}
@@ -212,6 +180,7 @@ export function UserAdmin({ currentUserId }: { currentUserId: string }) {
           <EmptyState>Benutzer werden geladen…</EmptyState>
         ) : (
           <Table
+            framed
             caption="Alle Benutzer"
             rows={users}
             rowKey={(row) => row.id}
@@ -221,12 +190,9 @@ export function UserAdmin({ currentUserId }: { currentUserId: string }) {
         )}
       </Panel>
 
-      <GroupManager groups={groups} users={users} onChanged={load} />
-
       <UserModal
         open={modalOpen}
         user={editing}
-        groups={groups}
         currentUserId={currentUserId}
         onClose={() => setModalOpen(false)}
         onSubmit={submitUser}

@@ -40,24 +40,8 @@ function isValidPayload(body: unknown): body is AdminUserPayload {
     candidate.name.trim().length > 0 &&
     typeof candidate.email === "string" &&
     candidate.email.trim().length > 0 &&
-    (candidate.role === "user" || candidate.role === "admin") &&
-    Array.isArray(candidate.groupIds)
+    (candidate.role === "user" || candidate.role === "admin")
   );
-}
-
-async function setGroups(
-  admin: ReturnType<typeof createAdminClient>,
-  profileId: string,
-  groupIds: string[],
-) {
-  await admin.from("profile_groups").delete().eq("profile_id", profileId);
-  if (groupIds.length === 0) return null;
-
-  const { error } = await admin
-    .from("profile_groups")
-    .insert(groupIds.map((groupId) => ({ profile_id: profileId, group_id: groupId })));
-
-  return error;
 }
 
 export async function POST(request: Request) {
@@ -110,16 +94,6 @@ export async function POST(request: Request) {
     }
     return NextResponse.json(
       { error: "Das Profil konnte nicht angelegt werden." },
-      { status: 500 },
-    );
-  }
-
-  const groupError = await setGroups(admin, created.user.id, body.groupIds);
-  if (groupError) {
-    await admin.from("profiles").delete().eq("id", created.user.id);
-    await admin.auth.admin.deleteUser(created.user.id);
-    return NextResponse.json(
-      { error: "Die Gruppen konnten nicht zugewiesen werden." },
       { status: 500 },
     );
   }
@@ -191,14 +165,6 @@ export async function PATCH(request: Request) {
     );
   }
 
-  const groupError = await setGroups(admin, targetId, body.groupIds);
-  if (groupError) {
-    return NextResponse.json(
-      { error: "Die Gruppen konnten nicht gespeichert werden." },
-      { status: 500 },
-    );
-  }
-
   return NextResponse.json({ ok: true });
 }
 
@@ -222,7 +188,7 @@ export async function DELETE(request: Request) {
 
   const admin = createAdminClient();
 
-  // Deleting the auth user cascades to profiles, entries and group links.
+  // Deleting the auth user cascades to profiles and entries.
   const { error } = await admin.auth.admin.deleteUser(targetId);
 
   if (error) {

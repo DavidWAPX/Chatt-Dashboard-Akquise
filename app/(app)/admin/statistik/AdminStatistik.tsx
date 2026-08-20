@@ -8,18 +8,25 @@ import {
   useState,
 } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Panel } from "@/components/ui/Panel";
 import { SearchInput } from "@/components/ui/Input";
-import { Select } from "@/components/ui/Select";
-import { Chip } from "@/components/ui/Chip";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Auswertung } from "@/components/analytics/Auswertung";
 import { createClient } from "@/lib/supabase/client";
 import { METRICS, formatNumber, sumMetrics } from "@/lib/metrics";
 import { getPeriod, isRangeKey, parseAnchor } from "@/lib/date-ranges";
-import type { Entry, Group, Profile, ProfileGroup, ProfileWithGroups } from "@/lib/types";
+import type { Entry, Profile } from "@/lib/types";
 import { cn } from "@/lib/cn";
+
+/** "MS" aus "Maria Schmidt" — gibt jeder Zeile einen Ankerpunkt fürs Auge. */
+function initialen(name: string): string {
+  const teile = name.trim().split(/\s+/).filter(Boolean);
+  if (teile.length === 0) return "?";
+  const erste = teile[0]?.[0] ?? "";
+  const letzte = teile.length > 1 ? (teile[teile.length - 1]?.[0] ?? "") : "";
+  return (erste + letzte).toUpperCase();
+}
 
 export function AdminStatistik() {
   const router = useRouter();
@@ -34,13 +41,11 @@ export function AdminStatistik() {
   const anchor = parseAnchor(searchParams.get("date"));
   const period = useMemo(() => getPeriod(range, anchor), [range, anchor]);
 
-  const [users, setUsers] = useState<ProfileWithGroups[]>([]);
-  const [groups, setGroups] = useState<Group[]>([]);
+  const [users, setUsers] = useState<Profile[]>([]);
   const [teamEntries, setTeamEntries] = useState<Entry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const [groupFilter, setGroupFilter] = useState("all");
 
   useEffect(() => {
     let cancelled = false;
@@ -48,33 +53,20 @@ export function AdminStatistik() {
     async function load() {
       setLoading(true);
       const supabase = createClient();
-      const [profilesResult, groupsResult, linksResult] = await Promise.all([
-        supabase.from("profiles").select("*").order("name"),
-        supabase.from("groups").select("*").order("name"),
-        supabase.from("profile_groups").select("*"),
-      ]);
+      const { data, error: loadError } = await supabase
+        .from("profiles")
+        .select("*")
+        .order("name");
 
       if (cancelled) return;
 
-      if (profilesResult.error || groupsResult.error || linksResult.error) {
+      if (loadError) {
         setError("Die Chatter konnten nicht geladen werden. Lade die Seite neu.");
         setLoading(false);
         return;
       }
 
-      const allGroups = (groupsResult.data ?? []) as Group[];
-      const links = (linksResult.data ?? []) as ProfileGroup[];
-
-      setGroups(allGroups);
-      setUsers(
-        ((profilesResult.data ?? []) as Profile[]).map((profile) => ({
-          ...profile,
-          groups: links
-            .filter((link) => link.profile_id === profile.id)
-            .map((link) => allGroups.find((group) => group.id === link.group_id))
-            .filter((group): group is Group => group !== undefined),
-        })),
-      );
+      setUsers((data ?? []) as Profile[]);
       setLoading(false);
     }
 
@@ -120,47 +112,42 @@ export function AdminStatistik() {
 
   const visibleUsers = useMemo(() => {
     const term = search.trim().toLowerCase();
-    return users.filter((user) => {
-      const matchesTerm = term === "" || user.name.toLowerCase().includes(term);
-      const matchesGroup =
-        groupFilter === "all" || user.groups.some((group) => group.id === groupFilter);
-      return matchesTerm && matchesGroup;
-    });
-  }, [users, search, groupFilter]);
+    if (term === "") return users;
+    return users.filter(
+      (user) =>
+        user.name.toLowerCase().includes(term) ||
+        user.email.toLowerCase().includes(term),
+    );
+  }, [users, search]);
 
   const selected = users.find((user) => user.id === selectedId) ?? null;
   const teamTotals = useMemo(() => sumMetrics(teamEntries), [teamEntries]);
 
   const list = (
     <div className="flex flex-col gap-6">
-      <Panel eyebrow="Team" title="Alle Chatter">
-        <div className="flex flex-col gap-4">
-          <SearchInput
-            label="Chatter suchen"
-            placeholder="Nach Name suchen…"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-          />
-          <Select
-            label="Gruppe"
-            value={groupFilter}
-            onChange={(event) => setGroupFilter(event.target.value)}
-            options={[
-              { value: "all", label: "Alle Gruppen" },
-              ...groups.map((group) => ({ value: group.id, label: group.name })),
-            ]}
-          />
-        </div>
+      <Panel eyebrow="Team" title="Chatter Tracking">
+        <p className="-mt-3 mb-5 text-[14px] text-text-2">
+          Wähle einen Chatter aus, um seine Workreports zu sehen.
+        </p>
 
-        <div className="mt-6 border-t border-border-default pt-6">
+        <SearchInput
+          label="Chatter suchen"
+          placeholder="Nach Name oder E-Mail suchen…"
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+        />
+
+        <div className="mt-6 rounded-[10px] border border-border-default bg-surface-2 p-4">
           <p className="font-display text-[11px] font-medium uppercase tracking-[0.08em] text-gold">
             Team gesamt · {period.label}
           </p>
-          <dl className="mt-3 grid grid-cols-2 gap-3">
+          {/* Untereinander statt nebeneinander: in der 360px schmalen Spalte
+              brechen drei Kennzahlen nebeneinander in zwei Zeilen um. */}
+          <dl className="mt-3 flex flex-col gap-2">
             {METRICS.map((metric) => (
-              <div key={metric.key}>
-                <dt className="text-[12px] text-text-3">{metric.label}</dt>
-                <dd className="font-display text-[17px] font-medium tnum text-text-1">
+              <div key={metric.key} className="flex items-baseline justify-between gap-4">
+                <dt className="min-w-0 text-[13px] text-text-2">{metric.label}</dt>
+                <dd className="shrink-0 font-display text-[18px] font-medium tnum text-text-1">
                   {formatNumber(teamTotals[metric.key])}
                 </dd>
               </div>
@@ -173,10 +160,10 @@ export function AdminStatistik() {
             <EmptyState>Chatter werden geladen…</EmptyState>
           ) : visibleUsers.length === 0 ? (
             <EmptyState>
-              Kein Chatter passt zu dieser Suche. Ändere den Namen oder die Gruppe.
+              Kein Chatter passt zu dieser Suche. Ändere den Suchbegriff.
             </EmptyState>
           ) : (
-            <ul className="flex flex-col gap-2">
+            <ul className="flex flex-col gap-1.5">
               {visibleUsers.map((user) => {
                 const active = user.id === selectedId;
                 return (
@@ -186,25 +173,43 @@ export function AdminStatistik() {
                       onClick={() => selectChatter(user.id)}
                       aria-current={active ? "true" : undefined}
                       className={cn(
-                        "w-full rounded-[8px] border-l-2 px-4 py-3 text-left transition-colors duration-[var(--dur)] ease-[var(--ease-ref)]",
+                        "flex w-full items-center gap-3 rounded-[10px] border px-3.5 py-3 text-left",
+                        "transition-colors duration-[var(--dur)] ease-[var(--ease-ref)]",
                         active
-                          ? "border-l-gold bg-surface-3"
-                          : "border-l-transparent hover:bg-surface-2",
+                          ? "border-border-gold bg-surface-3"
+                          : "border-transparent hover:border-border-default hover:bg-surface-2",
                       )}
                     >
-                      <span className="block font-sans text-[14px] font-medium text-text-1 break-anywhere">
-                        {user.name}
+                      <span
+                        aria-hidden="true"
+                        className={cn(
+                          "flex h-9 w-9 shrink-0 items-center justify-center rounded-full",
+                          "font-display text-[12px] font-semibold tracking-[0.03em]",
+                          active
+                            ? "bg-gold text-on-gold"
+                            : "bg-surface-2 text-text-2",
+                        )}
+                      >
+                        {initialen(user.name)}
                       </span>
-                      <span className="mt-0.5 block text-[13px] text-text-2 break-anywhere">
-                        {user.email}
-                      </span>
-                      {user.groups.length > 0 && (
-                        <span className="mt-2 flex flex-wrap gap-2">
-                          {user.groups.map((group) => (
-                            <Chip key={group.id}>{group.name}</Chip>
-                          ))}
+
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate font-sans text-[14px] font-medium text-text-1">
+                          {user.name}
                         </span>
-                      )}
+                        <span className="mt-0.5 block truncate text-[12.5px] text-text-3">
+                          {user.email}
+                        </span>
+                      </span>
+
+                      <ChevronRight
+                        size={16}
+                        aria-hidden="true"
+                        className={cn(
+                          "shrink-0",
+                          active ? "text-gold" : "text-text-3",
+                        )}
+                      />
                     </button>
                   </li>
                 );
@@ -233,7 +238,7 @@ export function AdminStatistik() {
           ) : (
             <Panel>
               <EmptyState>
-                Wähle links einen Chatter aus, um seine Zahlen zu sehen.
+                Wähle links einen Chatter aus, um seine Workreports zu sehen.
               </EmptyState>
             </Panel>
           )}
