@@ -381,22 +381,29 @@
   color: var(--text-1);
 }
 
+/* In einer Randinfo darf Fettdruck die Dämpfung nicht aufheben — sonst
+   leuchtet die Regieanweisung heller als die Nachricht daneben. */
+.skript-hinweis strong,
+.skript-hinweis em {
+  color: inherit;
+}
+
 .skript-text em {
   font-style: italic;
 }
 
 .skript-text a,
 .skript-block a {
-  color: var(--blau-hell);
+  color: var(--gold-bright);
   text-decoration: underline;
   text-underline-offset: 3px;
-  text-decoration-color: var(--blau-rand);
+  text-decoration-color: var(--border-gold);
   overflow-wrap: anywhere;
 }
 
 .skript-text a:hover,
 .skript-block a:hover {
-  text-decoration-color: var(--blau-hell);
+  text-decoration-color: var(--gold-bright);
 }
 
 /* Der Kopieren-Knopf steht immer da, nur gedämpft, und tritt beim

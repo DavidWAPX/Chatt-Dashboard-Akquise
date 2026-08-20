@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import {
   BarChart3,
   CalendarPlus,
-  ExternalLink,
   ListChecks,
   MessageSquareQuote,
   SquarePen,
@@ -111,7 +110,6 @@ export function PillNav({ role }: { role: UserRole }) {
         >
           <CalendarPlus size={15} aria-hidden="true" className="shrink-0" />
           Termin Buchen
-          <ExternalLink size={12} aria-hidden="true" className="shrink-0 opacity-60" />
         </a>
       </nav>
     </div>

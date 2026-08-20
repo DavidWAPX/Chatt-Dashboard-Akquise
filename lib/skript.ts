@@ -26,16 +26,36 @@ export const SKRIPT_DOC_EDIT_URL = `https://docs.google.com/document/d/${DOC_ID}
 
 export type SkriptBlock =
   | { art: "untertitel"; text: string }
-  | { art: "absatz"; html: string; text: string }
+  | {
+      art: "absatz";
+      zeilen: SkriptZeile[];
+      /** Nur die Nachrichtenzeilen — das, was der Kopieren-Knopf übergibt. */
+      kopierText: string;
+    }
   | { art: "liste"; punkte: Array<{ html: string; text: string }> }
   | { art: "trenner" }
   | { art: "bild"; src: string };
+
+export interface SkriptZeile {
+  html: string;
+  text: string;
+  /**
+   * Regieanweisung an den Chatter statt Text für den Lead — wird nicht
+   * mitkopiert und tritt in der Darstellung zurück.
+   */
+  hinweis: boolean;
+}
 
 export interface SkriptAbschnitt {
   /** Anker für das Inhaltsverzeichnis. */
   id: string;
   titel: string;
   bloecke: SkriptBlock[];
+  /**
+   * Alles vor dem ersten Kapitel: Titelbild, Kriterien, Rahmenbedingungen.
+   * Dort steht nichts, was jemals in einen Chat kopiert wird.
+   */
+  vorspann: boolean;
 }
 
 export type SkriptErgebnis =
@@ -131,15 +151,47 @@ function echterLink(href: string): string | null {
   }
 }
 
-interface Inline {
+interface RohZeile {
   html: string;
   text: string;
+  /** Wahr, solange jedes Stück dieser Zeile kursiv gesetzt ist. */
+  nurKursiv: boolean;
+  /** Wahr, sobald die Zeile etwas anderes als Leerraum enthält. */
+  gefuellt: boolean;
 }
 
-/** Baut aus Googles Auszeichnung eigenes, sicheres Inline-HTML. */
-function inline(knoten: Node[], klassen: Map<string, Stil>, geerbt: Stil): Inline {
-  let html = "";
-  let text = "";
+function neueZeile(): RohZeile {
+  return { html: "", text: "", nurKursiv: true, gefuellt: false };
+}
+
+/**
+ * Baut aus Googles Auszeichnung eigenes, sicheres Inline-HTML — und zerlegt
+ * dabei gleich an den Zeilenumbrüchen.
+ *
+ * Warum nicht hinterher am <br> trennen? Weil eine kursive Passage über einen
+ * Umbruch hinweg laufen kann. Ein nachträglicher Schnitt zerschneidet dann das
+ * <em>-Tag, die erste Zeile bleibt ohne Abschluss und gilt nicht mehr als
+ * kursiv — womit die Erkennung von Regieanweisungen ins Leere liefe.
+ */
+function inline(knoten: Node[], klassen: Map<string, Stil>, geerbt: Stil): RohZeile[] {
+  const zeilen: RohZeile[] = [neueZeile()];
+
+  /** Hängt fertige Teilzeilen an: die erste an die laufende, der Rest neu. */
+  function anfuegen(teile: RohZeile[]) {
+    for (const [index, teil] of teile.entries()) {
+      if (index > 0) {
+        zeilen.push(neueZeile());
+      }
+      const aktuell = zeilen[zeilen.length - 1];
+      if (!aktuell) continue;
+      aktuell.html += teil.html;
+      aktuell.text += teil.text;
+      if (teil.gefuellt) {
+        aktuell.nurKursiv = aktuell.gefuellt ? aktuell.nurKursiv && teil.nurKursiv : teil.nurKursiv;
+        aktuell.gefuellt = true;
+      }
+    }
+  }
 
   for (const kind of knoten) {
     // Textknoten. `.text` löst die HTML-Entities auf, mit denen Google alles
@@ -147,8 +199,14 @@ function inline(knoten: Node[], klassen: Map<string, Stil>, geerbt: Stil): Inlin
     // der Seite, und die Kapitelmarker ①…⑧ wären gar nicht auffindbar.
     if (kind.nodeType === 3) {
       const roh = kind.text.replace(/\u00a0/g, " ");
-      html += escape(roh);
-      text += roh;
+      anfuegen([
+        {
+          html: escape(roh),
+          text: roh,
+          nurKursiv: geerbt.kursiv,
+          gefuellt: roh.trim() !== "",
+        },
+      ]);
       continue;
     }
 
@@ -157,48 +215,102 @@ function inline(knoten: Node[], klassen: Map<string, Stil>, geerbt: Stil): Inlin
     const tag = element.rawTagName?.toLowerCase();
 
     if (tag === "br") {
-      html += "<br />";
-      text += "\n";
+      zeilen.push(neueZeile());
       continue;
     }
 
     if (tag === "a") {
       const ziel = echterLink(element.getAttribute("href") ?? "");
       const innen = inline(element.childNodes, klassen, geerbt);
-      html += ziel
-        ? `<a href="${escape(ziel)}" target="_blank" rel="noopener noreferrer">${innen.html}</a>`
-        : innen.html;
-      text += innen.text;
+      anfuegen(
+        innen.map((zeile) => ({
+          ...zeile,
+          html: ziel
+            ? `<a href="${escape(ziel)}" target="_blank" rel="noopener noreferrer">${zeile.html}</a>`
+            : zeile.html,
+        })),
+      );
       continue;
     }
 
     const stil = stilFuer(element, klassen, geerbt);
     const innen = inline(element.childNodes, klassen, stil);
-    let stueck = innen.html;
-    if (stil.kursiv && !geerbt.kursiv) stueck = `<em>${stueck}</em>`;
-    if (stil.fett && !geerbt.fett) stueck = `<strong>${stueck}</strong>`;
-    html += stueck;
-    text += innen.text;
+    anfuegen(
+      innen.map((zeile) => {
+        let html = zeile.html;
+        // Die Auszeichnung wird je Zeile gesetzt, nicht über den Umbruch hinweg.
+        if (stil.kursiv && !geerbt.kursiv && zeile.gefuellt) html = `<em>${html}</em>`;
+        if (stil.fett && !geerbt.fett && zeile.gefuellt) html = `<strong>${html}</strong>`;
+        return { ...zeile, html };
+      }),
+    );
   }
 
-  return { html, text };
+  return zeilen;
 }
 
-/**
- * Im Dokument stehen ganze Ketten von <br>, um Abstand zu erzeugen. Auf einer
- * Seite mit ordentlichen Absatzabständen reißen die nur Löcher in den Text.
- */
-function raeumeUmbrueche(stueck: Inline): Inline {
+/** Fasst die Zeilen eines Absatzes wieder zu einem Stück zusammen. */
+function alsStueck(zeilen: RohZeile[]): { html: string; text: string } {
+  const gefuellt = zeilen.filter((zeile) => zeile.gefuellt);
   return {
-    html: stueck.html
-      .replace(/(?:\s*<br \/>\s*){2,}/g, "<br />")
-      .replace(/^(?:\s*<br \/>)+|(?:<br \/>\s*)+$/g, "")
-      .trim(),
-    text: stueck.text.replace(/\n{2,}/g, "\n").trim(),
+    html: gefuellt.map((zeile) => zeile.html.trim()).join("<br />"),
+    text: gefuellt.map((zeile) => zeile.text.trim()).join("\n"),
   };
 }
 
 const LEERER_STIL: Stil = { fett: false, kursiv: false, groesse: null };
+
+/**
+ * Wörter, mit denen das Dokument eine Regieanweisung eröffnet. Sie stehen
+ * immer am Zeilenanfang und immer vor einem Doppelpunkt.
+ */
+const HINWEIS_WORT =
+  /^(ziel|tipp|wichtig|achtung|hinweis|info|beachte|merke|anmerkung|nur bei|falls antwort)\b/i;
+
+/**
+ * Trennt Text für den Lead von Text für den Chatter.
+ *
+ * Das Dokument macht den Unterschied selbst, nur eben typografisch: eine
+ * Anweisung beginnt mit einem Pfeil, steht in Klammern, ist kursiv gesetzt
+ * oder fängt mit "Ziel:" / "Tipp:" / "Wichtig:" an. Genau daran hängt diese
+ * Erkennung — nichts wird geraten, und wer im Dokument einen Hinweis anders
+ * schreibt, bekommt ihn im Zweifel als Nachricht angezeigt statt umgekehrt.
+ */
+function istHinweis(zeile: RohZeile): boolean {
+  const text = zeile.text.trim();
+  if (text === "") return false;
+
+  // Pfeil am Anfang: die Schreibweise des Dokuments für "mach dann dies".
+  if (/^[\u2192\u2794\u27A1]/u.test(text)) return true;
+
+  // Vollständig eingeklammert — im Dokument durchgehend Randbemerkungen.
+  if (/^\([\s\S]*\)$/.test(text)) return true;
+
+  // Mehrere Pfeile in einer Zeile beschreiben einen Ablauf ("Erstnachricht →
+  // Bedarf → Beruf"). Eine Nachricht an den Lead sieht nie so aus.
+  if ((text.match(/[\u2192\u2794\u27A1]/gu) ?? []).length >= 2) return true;
+
+  /*
+   * Kursiv allein reicht nicht: im Dokument liegt manche kursive Passage über
+   * der Anweisung UND der Nachricht darunter. Erst der Doppelpunkt am Ende
+   * macht daraus zuverlässig eine Ansage — "Bei „Ja“ kritisch nachfassen:"
+   * kündigt an, was danach kommt, statt selbst verschickt zu werden.
+   */
+  if (zeile.nurKursiv && /:\s*$/.test(text)) return true;
+
+  return HINWEIS_WORT.test(text);
+}
+
+/** Macht aus den Rohzeilen die Zeilen, die die Seite anzeigt. */
+function inZeilen(roh: RohZeile[]): SkriptZeile[] {
+  return roh
+    .filter((zeile) => zeile.gefuellt)
+    .map((zeile) => ({
+      html: zeile.html.trim(),
+      text: zeile.text.trim(),
+      hinweis: istHinweis(zeile),
+    }));
+}
 
 /**
  * Kapitel tragen im Dokument einen Marker: ①…⑳, ⊙ oder einen Pfeil. Der muss
@@ -268,13 +380,18 @@ async function holeDokument(): Promise<SkriptErgebnis> {
   let dokumentTitel = "Chatting Skript";
   let ersteUeberschrift = true;
 
-  function neuerAbschnitt(titel: string) {
-    aktuell = { id: ankerFuer(titel, abschnitte.length), titel, bloecke: [] };
+  function neuerAbschnitt(titel: string, vorspann = false) {
+    aktuell = {
+      id: ankerFuer(titel, abschnitte.length),
+      titel,
+      bloecke: [],
+      vorspann,
+    };
     abschnitte.push(aktuell);
   }
 
   function schreibe(block: SkriptBlock) {
-    if (!aktuell) neuerAbschnitt("Überblick");
+    if (!aktuell) neuerAbschnitt("Überblick", true);
     aktuell?.bloecke.push(block);
   }
 
@@ -291,7 +408,7 @@ async function holeDokument(): Promise<SkriptErgebnis> {
     if (tag === "ul" || tag === "ol") {
       const punkte = element
         .querySelectorAll("li")
-        .map((li) => inline(li.childNodes, klassen, LEERER_STIL))
+        .map((li) => alsStueck(inline(li.childNodes, klassen, LEERER_STIL)))
         .filter((punkt) => punkt.text.trim() !== "");
       if (punkte.length > 0) schreibe({ art: "liste", punkte });
       continue;
@@ -306,7 +423,8 @@ async function holeDokument(): Promise<SkriptErgebnis> {
     }
 
     const eigenerStil = stilFuer(element, klassen, LEERER_STIL);
-    const inhalt = raeumeUmbrueche(inline(element.childNodes, klassen, eigenerStil));
+    const rohZeilen = inline(element.childNodes, klassen, eigenerStil);
+    const inhalt = alsStueck(rohZeilen);
     const text = inhalt.text;
     if (text === "") continue;
 
@@ -338,7 +456,17 @@ async function holeDokument(): Promise<SkriptErgebnis> {
       continue;
     }
 
-    schreibe({ art: "absatz", html: inhalt.html, text });
+    const zeilen = inZeilen(rohZeilen);
+    if (zeilen.length === 0) continue;
+
+    schreibe({
+      art: "absatz",
+      zeilen,
+      kopierText: zeilen
+        .filter((zeile) => !zeile.hinweis)
+        .map((zeile) => zeile.text)
+        .join("\n"),
+    });
   }
 
   const ergebnis: SkriptErgebnis = {

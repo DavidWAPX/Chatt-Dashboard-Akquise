@@ -53,7 +53,7 @@ export function KopierButton({ text, label = "Text kopieren", className }: Kopie
           ? "border-[var(--status-won)] bg-[color-mix(in_srgb,var(--status-won)_16%,transparent)] text-[var(--status-won)]"
           : fehler
             ? "border-danger-border bg-danger-dim text-danger"
-            : "border-blau-rand bg-blau-dim text-blau-hell hover:border-blau-hell hover:bg-[color-mix(in_srgb,var(--blau)_30%,transparent)] hover:text-text-1",
+            : "border-border-gold bg-gold-dim text-gold-bright hover:border-gold-bright hover:bg-[color-mix(in_srgb,var(--gold)_28%,transparent)] hover:text-text-1",
         className,
       )}
     >

@@ -1,3 +1,4 @@
+import { cn } from "@/lib/cn";
 import { KopierButton } from "./KopierButton";
 import type { SkriptAbschnitt, SkriptBlock } from "@/lib/skript";
 
@@ -9,14 +10,14 @@ import type { SkriptAbschnitt, SkriptBlock } from "@/lib/skript";
  * Zeichen neu aufgebaut — Text wird escaped, erlaubt sind nur <strong>, <em>,
  * <br> und geprüfte http(s)-Links.
  */
-function Block({ block }: { block: SkriptBlock }) {
+function Block({ block, vorspann }: { block: SkriptBlock; vorspann: boolean }) {
   if (block.art === "trenner") {
     return <hr className="my-7 border-0 border-t border-border-soft" />;
   }
 
   if (block.art === "untertitel") {
     return (
-      <h3 className="mt-7 font-display text-[13px] font-semibold uppercase tracking-[0.07em] text-blau-hell first:mt-0">
+      <h3 className="mt-7 font-display text-[13px] font-semibold uppercase tracking-[0.07em] text-gold first:mt-0">
         {block.text}
       </h3>
     );
@@ -40,7 +41,7 @@ function Block({ block }: { block: SkriptBlock }) {
       <ul className="mt-4 flex flex-col gap-2">
         {block.punkte.map((punkt, index) => (
           <li key={index} className="flex gap-3 text-[15px] leading-[1.65] text-text-2">
-            <span aria-hidden="true" className="mt-[9px] h-[5px] w-[5px] shrink-0 rounded-full bg-blau" />
+            <span aria-hidden="true" className="mt-[9px] h-[5px] w-[5px] shrink-0 rounded-full bg-gold" />
             <span dangerouslySetInnerHTML={{ __html: punkt.html }} />
           </li>
         ))}
@@ -49,22 +50,47 @@ function Block({ block }: { block: SkriptBlock }) {
   }
 
   /*
-   * Absätze sind das, was der Chatter wirklich braucht: die fertigen
-   * Nachrichten. Jeder bekommt darum einen eigenen Kopieren-Knopf statt eines
-   * einzigen für die ganze Seite.
+   * Ein Absatz kann beides enthalten: den Text, der an den Lead geht, und
+   * Regieanweisungen an den Chatter. Nur das Erste ist zum Kopieren da — der
+   * Knopf übergibt genau die Nachrichtenzeilen, und die Anweisungen daneben
+   * treten optisch zurück, statt sich als Nachricht auszugeben.
    */
+  // Im Vorspann steht Rahmeninformation, kein Chattext — dort wird nichts
+  // zum Kopieren angeboten.
+  const kopierbar = !vorspann && block.kopierText !== "";
+
   return (
-    <div className="skript-block group mt-4 rounded-[10px] border border-transparent px-4 py-3.5 transition-colors duration-[var(--dur)] ease-[var(--ease-ref)] hover:border-border-default hover:bg-surface-2">
+    <div
+      className={cn(
+        "skript-block group mt-4 rounded-[10px] border px-4 py-3.5",
+        "transition-colors duration-[var(--dur)] ease-[var(--ease-ref)]",
+        kopierbar
+          ? "border-border-default bg-surface-2/40 hover:border-border-gold"
+          : "border-transparent",
+      )}
+    >
       <div className="flex items-start justify-between gap-4">
-        <p
-          className="skript-text min-w-0 whitespace-pre-line text-[15px] leading-[1.7] text-text-2"
-          dangerouslySetInnerHTML={{ __html: block.html }}
-        />
-        <KopierButton
-          text={block.text}
-          label="Diesen Textbaustein kopieren"
-          className="skript-kopieren"
-        />
+        <div className="skript-text min-w-0 text-[15px] leading-[1.7]">
+          {block.zeilen.map((zeile, index) => (
+            <p
+              key={index}
+              className={cn(
+                zeile.hinweis
+                  ? "skript-hinweis text-[13.5px] leading-[1.6] text-text-3"
+                  : "text-text-2",
+              )}
+              dangerouslySetInnerHTML={{ __html: zeile.html }}
+            />
+          ))}
+        </div>
+
+        {kopierbar && (
+          <KopierButton
+            text={block.kopierText}
+            label="Diese Nachricht kopieren"
+            className="skript-kopieren"
+          />
+        )}
       </div>
     </div>
   );
@@ -84,7 +110,7 @@ export function SkriptAbschnitte({ abschnitte }: { abschnitte: SkriptAbschnitt[]
           <header className="mb-5 flex items-start gap-3.5 border-b border-border-soft pb-5">
             <span
               aria-hidden="true"
-              className="mt-[2px] flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-blau-rand bg-blau-dim font-display text-[12px] font-semibold tnum text-blau-hell"
+              className="mt-[2px] flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border-gold bg-gold-dim font-display text-[12px] font-semibold tnum text-gold-bright"
             >
               {index + 1}
             </span>
@@ -94,7 +120,7 @@ export function SkriptAbschnitte({ abschnitte }: { abschnitte: SkriptAbschnitt[]
           </header>
 
           {abschnitt.bloecke.map((block, blockIndex) => (
-            <Block key={blockIndex} block={block} />
+            <Block key={blockIndex} block={block} vorspann={abschnitt.vorspann} />
           ))}
         </section>
       ))}
