@@ -237,7 +237,8 @@ export function LeadListe({ profileName, leads, fetchedAt, problem }: LeadListeP
             <p className="mt-2 max-w-[70ch] text-[14px] text-text-2">
               Hier siehst du alle Leads, die dir als{" "}
               <span className="text-text-1">{profileName}</span> zugeordnet sind, und wo
-              sie gerade stehen.
+              sie gerade stehen. Die goldenen Symbole rechts kannst du anklicken – sie
+              öffnen die Notizen und den Gesprächsverlauf zum jeweiligen Lead.
             </p>
           </div>
           <Button

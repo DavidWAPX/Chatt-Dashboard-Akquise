@@ -296,6 +296,46 @@
 .chip-termin { --tone: var(--status-termin); }
 .chip-inactive { --tone: var(--status-inactive); }
 
+/* ==========================================================================
+   Icon-Button in Tabellenzellen (Notizen / Setting / Closing)
+   Ein graues Symbol auf schwarzem Grund liest sich wie Dekoration. Gold ist in
+   dieser App die Farbe für "hier kann man etwas tun" (aktiver Navigationspunkt,
+   Aktualisieren-Button), also trägt der Button sie schon im Ruhezustand — samt
+   sichtbarem Rahmen und Fläche, damit er als Schaltfläche erkennbar ist.
+   ========================================================================== */
+
+.btn-icon-action {
+  display: inline-flex;
+  height: 32px;
+  width: 100%;
+  max-width: 64px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  border: 1px solid var(--border-gold);
+  background-color: var(--gold-dim);
+  color: var(--gold-bright);
+  cursor: pointer;
+  transition:
+    background-color var(--dur) var(--ease-ref),
+    border-color var(--dur) var(--ease-ref),
+    color var(--dur) var(--ease-ref),
+    box-shadow var(--dur) var(--ease-ref);
+}
+
+.btn-icon-action:hover {
+  border-color: var(--gold-bright);
+  background-color: color-mix(in srgb, var(--gold) 28%, transparent);
+  color: var(--text-1);
+  box-shadow: var(--shadow-glow);
+}
+
+.btn-icon-action:focus-visible {
+  border-color: var(--gold-bright);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+  outline: none;
+}
+
 .gold-ghost-glow {
   box-shadow: none;
 }
