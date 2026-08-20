@@ -20,7 +20,7 @@ export default async function SkriptPage() {
   if (!skript.ok) {
     return (
       <section className="rounded-[12px] border border-panel-border bg-surface-1 p-5 tbl:p-8">
-        <p className="font-display text-[11px] font-medium uppercase tracking-[0.09em] text-gold">
+        <p className="font-display text-[11px] font-medium uppercase tracking-[0.09em] text-blau-hell">
           Chatting Skript
         </p>
         <h1 className="mt-1 font-display text-[19px] font-medium uppercase tracking-[0.05em] text-text-1 tbl:text-[21px]">
@@ -35,7 +35,7 @@ export default async function SkriptPage() {
           href={SKRIPT_DOC_EDIT_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-6 inline-flex items-center gap-2 text-[14px] text-gold hover:text-gold-bright"
+          className="mt-6 inline-flex items-center gap-2 text-[14px] text-blau-hell hover:text-text-1"
         >
           Dokument in Google Docs öffnen
           <ExternalLink size={14} aria-hidden="true" />
@@ -54,7 +54,7 @@ export default async function SkriptPage() {
       <section className="rounded-[12px] border border-panel-border bg-surface-1 p-5 tbl:p-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
-            <p className="font-display text-[11px] font-medium uppercase tracking-[0.09em] text-gold">
+            <p className="font-display text-[11px] font-medium uppercase tracking-[0.09em] text-blau-hell">
               Chatting Skript
             </p>
             <h1 className="mt-1 font-display text-[19px] font-medium uppercase tracking-[0.05em] text-text-1 tbl:text-[21px] break-anywhere">
@@ -71,7 +71,7 @@ export default async function SkriptPage() {
             href={SKRIPT_DOC_EDIT_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex h-[44px] shrink-0 items-center gap-2 rounded-[6px] border border-btn-neutral-border bg-surface-1 px-4 text-[14px] text-text-1 transition-colors duration-[var(--dur)] ease-[var(--ease-ref)] hover:border-gold hover:text-gold-bright"
+            className="inline-flex h-[44px] shrink-0 items-center gap-2 rounded-[6px] border border-btn-neutral-border bg-surface-1 px-4 text-[14px] text-text-1 transition-colors duration-[var(--dur)] ease-[var(--ease-ref)] hover:border-blau hover:text-blau-hell"
           >
             Im Google-Dokument bearbeiten
             <ExternalLink size={15} aria-hidden="true" />
@@ -97,7 +97,7 @@ export default async function SkriptPage() {
             aria-label="Abschnitte des Skripts"
             className="hidden lg:sticky lg:top-[110px] lg:block rounded-[12px] border border-panel-border bg-surface-1 p-4"
           >
-            <p className="mb-3 px-2 font-display text-[11px] font-medium uppercase tracking-[0.09em] text-gold">
+            <p className="mb-3 px-2 font-display text-[11px] font-medium uppercase tracking-[0.09em] text-blau-hell">
               Inhalt
             </p>
             <ol className="flex flex-col gap-0.5">

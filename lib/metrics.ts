@@ -7,27 +7,10 @@ export const METRICS: ReadonlyArray<{
   /** Abbreviated head for the entries table. Must still be readable on its
       own — single letters like "Q" are a riddle, not a label. */
   short: string;
-  /** One plain sentence under the input, so nobody has to guess what counts. */
-  hint: string;
 }> = [
-  {
-    key: "first_messages",
-    label: "Erstnachrichten",
-    short: "Erstnachr.",
-    hint: "Wie viele Leute hast du heute zum ersten Mal angeschrieben?",
-  },
-  {
-    key: "followups",
-    label: "Followup Nachrichten",
-    short: "Followups",
-    hint: "Wie oft hast du heute nachgefasst, wo schon Kontakt bestand?",
-  },
-  {
-    key: "appointments",
-    label: "Termin gelegt",
-    short: "Termine",
-    hint: "Wie viele Termine sind heute daraus entstanden?",
-  },
+  { key: "first_messages", label: "Erstnachrichten", short: "Erstnachr." },
+  { key: "followups", label: "Followup Nachrichten", short: "Followups" },
+  { key: "appointments", label: "Termin gelegt", short: "Termine" },
 ] as const;
 
 export const METRIC_KEYS = METRICS.map((m) => m.key);

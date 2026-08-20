@@ -166,12 +166,9 @@ export function EntryForm({ profileId }: { profileId: string }) {
 
         <form onSubmit={handleSubmit} noValidate>
           <fieldset className="border-0 p-0">
-            <legend className="mb-1 font-sans text-[13px] font-semibold text-text-1">
-              1. Auf welcher Plattform warst du unterwegs?
+            <legend className="mb-2 font-sans text-[13px] font-semibold text-text-1">
+              Plattform
             </legend>
-            <p className="mb-3 text-[13px] text-text-2">
-              Jede Plattform wird getrennt getrackt — trag sie nacheinander ein.
-            </p>
             <Segmented
               label="Plattform"
               value={platform}
@@ -190,25 +187,21 @@ export function EntryForm({ profileId }: { profileId: string }) {
           {existing && !loading && (
             <p className="mt-6 flex items-start gap-3 rounded-[8px] border border-border-gold bg-surface-3 px-4 py-3 text-[14px] text-text-2">
               <Info size={16} aria-hidden="true" className="mt-0.5 shrink-0 text-gold" />
-              Für heute und {PLATFORM_LABEL[platform]} hast du schon etwas eingetragen.
-              Die Zahlen unten stehen bereits drin — Speichern aktualisiert sie.
+              Für heute und {PLATFORM_LABEL[platform]} steht schon ein Eintrag —
+              Speichern aktualisiert ihn.
             </p>
           )}
 
-          <fieldset className="mt-9 border-0 p-0">
-            <legend className="mb-1 font-sans text-[13px] font-semibold text-text-1">
-              2. Was hast du heute auf {PLATFORM_LABEL[platform]} gemacht?
+          <fieldset className="mt-8 border-0 p-0">
+            <legend className="mb-3 font-sans text-[13px] font-semibold text-text-1">
+              Deine Zahlen für {PLATFORM_LABEL[platform]}
             </legend>
-            <p className="mb-4 text-[13px] text-text-2">
-              Trag ein, was du wirklich geschafft hast. Leere Felder zählen als 0.
-            </p>
 
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {METRICS.map((metric) => (
                 <NumberInput
                   key={metric.key}
                   label={metric.label}
-                  hint={metric.hint}
                   value={values[metric.key]}
                   onValueChange={(next) => updateValue(metric.key, next)}
                   disabled={loading}
@@ -224,15 +217,13 @@ export function EntryForm({ profileId }: { profileId: string }) {
             </p>
           )}
 
-          <div className="mt-9 flex flex-col-reverse items-stretch gap-3 border-t border-border-default pt-6 sm:flex-row sm:items-center sm:justify-between">
+          <div className="mt-8 flex flex-col-reverse items-stretch gap-3 border-t border-border-default pt-6 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-[13px] text-text-3">
-              {saved && !dirty ? (
+              {saved && !dirty && (
                 <span className="inline-flex items-center gap-2 text-gold">
                   <Check size={15} aria-hidden="true" />
                   Für {PLATFORM_LABEL[platform]} gespeichert.
                 </span>
-              ) : (
-                "Du kannst jederzeit nachbessern — Speichern überschreibt den heutigen Eintrag."
               )}
             </p>
             <Button

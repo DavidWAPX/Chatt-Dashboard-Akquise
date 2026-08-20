@@ -45,6 +45,15 @@
                                 Slate: sichtbar aussortiert, ohne mit dem Rot einer
                                 echten Absage oder dem Gold eines Termins zu konkurrieren */
 
+  /* Blau für die beiden Werkzeuge (Chatting Skript, Termin Buchen). Sie sind
+     keine Bereiche des Dashboards, sondern Sprungbretter nach außen — eine
+     eigene Farbe sagt das, ohne ein Wort dafür zu brauchen. Der Ton ist
+     entsättigt genug, um neben dem Gold nicht zu schreien. */
+  --blau: #4d7cc7;
+  --blau-hell: #7ba6ea;
+  --blau-dim: #4d7cc726;
+  --blau-rand: #4d7cc76b;
+
   --nav-inactive: #ffffffa6; /* nav label at rest */
   --nav-hover: #141414; /* --surface-hover under a hovered nav item */
 
@@ -103,6 +112,11 @@
   --color-text-1: var(--text-1);
   --color-text-2: var(--text-2);
   --color-text-3: var(--text-3);
+
+  --color-blau: var(--blau);
+  --color-blau-hell: var(--blau-hell);
+  --color-blau-dim: var(--blau-dim);
+  --color-blau-rand: var(--blau-rand);
 
   --color-danger: var(--danger);
   --color-danger-dim: var(--danger-dim);
@@ -213,8 +227,9 @@
   max-width: 1240px;
   margin-inline: auto;
   padding-inline: 16px;
-  /* Nav is 54px tall at top:16px, so 102px leaves a clean 32px gap below it. */
-  padding-top: 102px;
+  /* Oben schweben zwei Leisten: 16px Abstand + 54px Hauptnavigation + 8px
+     Zwischenraum + 38px Werkzeugleiste = 116px, plus 32px Luft darunter. */
+  padding-top: 148px;
   padding-bottom: 112px;
 }
 
@@ -257,6 +272,25 @@
 /* The floating bar — reference --shadow-glow, no invented layers. */
 .nav-glow {
   box-shadow: var(--shadow-glow);
+}
+
+/* Werkzeugleiste unter der Hauptnavigation — kleiner und blau, damit sie
+   die Hauptnavigation nicht verdrängt, aber sichtbar bleibt. */
+.nav-tools {
+  border-color: var(--blau-rand);
+  box-shadow: 0 0 14px #4d7cc733;
+}
+
+.nav-tool {
+  color: var(--blau-hell);
+  transition:
+    background-color var(--dur) var(--ease-ref),
+    color var(--dur) var(--ease-ref);
+}
+
+.nav-tool:hover {
+  background-color: var(--blau-dim);
+  color: var(--text-1);
 }
 
 /* Active nav item: one flat gold-tinted surface, no gradient. */
@@ -353,16 +387,16 @@
 
 .skript-text a,
 .skript-block a {
-  color: var(--gold-bright);
+  color: var(--blau-hell);
   text-decoration: underline;
   text-underline-offset: 3px;
-  text-decoration-color: var(--border-gold);
+  text-decoration-color: var(--blau-rand);
   overflow-wrap: anywhere;
 }
 
 .skript-text a:hover,
 .skript-block a:hover {
-  text-decoration-color: var(--gold-bright);
+  text-decoration-color: var(--blau-hell);
 }
 
 /* Der Kopieren-Knopf steht immer da, nur gedämpft, und tritt beim

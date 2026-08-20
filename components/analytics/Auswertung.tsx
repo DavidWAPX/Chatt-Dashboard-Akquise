@@ -307,28 +307,7 @@ export function Auswertung({ profileId, heading }: AuswertungProps) {
         </p>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {METRICS.map((metric) => (
-          <StatCard
-            key={metric.key}
-            label={metric.label}
-            value={totals[metric.key]}
-            series={seriesByMetric?.[metric.key]}
-            hint={
-              platform === "all"
-                ? `Alle Plattformen · ${period.label}`
-                : `${PLATFORM_LABEL[platform]} · ${period.label}`
-            }
-          />
-        ))}
-      </div>
-
       <Panel bare eyebrow={period.label} title="Verlauf">
-        <p className="-mt-3 mb-6 max-w-[62ch] text-[14px] text-text-2">
-          Alle drei Zahlen auf einen Blick. Fahr mit der Maus über das Diagramm,
-          dann siehst du die genauen Werte für den jeweiligen Punkt.
-        </p>
-
         {loading ? (
           <EmptyState>Zahlen werden geladen…</EmptyState>
         ) : leer ? (
@@ -340,6 +319,17 @@ export function Auswertung({ profileId, heading }: AuswertungProps) {
           <VerlaufsDiagramm entries={currentEntries} range={range} period={period} />
         )}
       </Panel>
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {METRICS.map((metric) => (
+          <StatCard
+            key={metric.key}
+            label={metric.label}
+            value={totals[metric.key]}
+            series={seriesByMetric?.[metric.key]}
+          />
+        ))}
+      </div>
 
       <Panel bare eyebrow={period.label} title="Alle Workreports">
         {loading ? (

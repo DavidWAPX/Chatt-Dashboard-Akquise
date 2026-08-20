@@ -7,8 +7,6 @@ interface StatCardProps {
   value: number;
   /** One value per bucket of the current period — drives the sparkline. */
   series?: readonly number[];
-  /** Plain sentence under the number saying what it counts. */
-  hint?: string;
   className?: string;
 }
 
@@ -17,11 +15,11 @@ interface StatCardProps {
  * the comparison against the previous period was removed because it asked
  * the reader to hold two numbers in their head to understand one.
  */
-export function StatCard({ label, value, series, hint, className }: StatCardProps) {
+export function StatCard({ label, value, series, className }: StatCardProps) {
   return (
     <div
       className={cn(
-        "group relative overflow-hidden rounded-[12px] border border-panel-border bg-surface-1 p-6",
+        "group relative overflow-hidden rounded-[12px] border border-panel-border bg-surface-1 p-5",
         "transition-colors duration-[var(--dur)] ease-[var(--ease-ref)] hover:border-border-gold",
         className,
       )}
@@ -46,8 +44,6 @@ export function StatCard({ label, value, series, hint, className }: StatCardProp
             <Sparkline values={series} className="mb-1 h-[34px] w-[96px] shrink-0" />
           )}
         </div>
-
-        {hint && <p className="mt-3 text-[12.5px] leading-[1.45] text-text-3">{hint}</p>}
       </div>
     </div>
   );

@@ -16,7 +16,7 @@ function Block({ block }: { block: SkriptBlock }) {
 
   if (block.art === "untertitel") {
     return (
-      <h3 className="mt-7 font-display text-[13px] font-semibold uppercase tracking-[0.07em] text-gold first:mt-0">
+      <h3 className="mt-7 font-display text-[13px] font-semibold uppercase tracking-[0.07em] text-blau-hell first:mt-0">
         {block.text}
       </h3>
     );
@@ -40,7 +40,7 @@ function Block({ block }: { block: SkriptBlock }) {
       <ul className="mt-4 flex flex-col gap-2">
         {block.punkte.map((punkt, index) => (
           <li key={index} className="flex gap-3 text-[15px] leading-[1.65] text-text-2">
-            <span aria-hidden="true" className="mt-[9px] h-[5px] w-[5px] shrink-0 rounded-full bg-gold" />
+            <span aria-hidden="true" className="mt-[9px] h-[5px] w-[5px] shrink-0 rounded-full bg-blau" />
             <span dangerouslySetInnerHTML={{ __html: punkt.html }} />
           </li>
         ))}
@@ -84,7 +84,7 @@ export function SkriptAbschnitte({ abschnitte }: { abschnitte: SkriptAbschnitt[]
           <header className="mb-5 flex items-start gap-3.5 border-b border-border-soft pb-5">
             <span
               aria-hidden="true"
-              className="mt-[2px] flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border-gold bg-gold-dim font-display text-[12px] font-semibold tnum text-gold-bright"
+              className="mt-[2px] flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-blau-rand bg-blau-dim font-display text-[12px] font-semibold tnum text-blau-hell"
             >
               {index + 1}
             </span>
