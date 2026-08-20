@@ -2,16 +2,17 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, LayoutGrid, ListChecks, SquarePen, Users } from "lucide-react";
+import { BarChart3, ListChecks, SquarePen, Users } from "lucide-react";
 import { cn } from "@/lib/cn";
 import type { UserRole } from "@/lib/types";
 
+/* Daily work first, then its history, then administration. User management
+   no longer has its own entry — it lives inside Admin as a tab. */
 const ITEMS = [
-  { href: "/", label: "Statistik", icon: LayoutGrid, adminOnly: false },
-  { href: "/tageseintrag", label: "Tageseintrag", icon: SquarePen, adminOnly: false },
-  { href: "/leads", label: "Lead Status", icon: ListChecks, adminOnly: false },
-  { href: "/admin/statistik", label: "Admin", icon: BarChart3, adminOnly: true },
-  { href: "/admin/benutzer", label: "Benutzer", icon: Users, adminOnly: true },
+  { href: "/leads", label: "Meine Leads", icon: ListChecks, adminOnly: false },
+  { href: "/tageseintrag", label: "Workreport", icon: SquarePen, adminOnly: false },
+  { href: "/", label: "Workreport Verlauf", icon: BarChart3, adminOnly: false },
+  { href: "/admin", label: "Admin", icon: Users, adminOnly: true },
 ] as const;
 
 /**

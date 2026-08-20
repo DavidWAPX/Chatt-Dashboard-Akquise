@@ -145,7 +145,7 @@ export function EntryForm({ profileId }: { profileId: string }) {
 
   return (
     <>
-      <Panel eyebrow="Tageseintrag" title="Zahlen erfassen">
+      <Panel eyebrow="Workreport" title="Zahlen erfassen">
         <form onSubmit={handleSubmit} noValidate>
           <div className="grid gap-5 sm:grid-cols-2">
             <Input
@@ -221,7 +221,7 @@ export function EntryForm({ profileId }: { profileId: string }) {
       {saved && (
         <Toast
           message="Gespeichert"
-          detail="Ansehen unter Statistik"
+          detail="Ansehen unter Workreport Verlauf"
           onDismiss={() => setSaved(false)}
         />
       )}

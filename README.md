@@ -74,7 +74,7 @@ Sobald SMTP eingerichtet ist, unter *Authentication → Emails → Magic Link* d
 ### 4 — Ersten Admin anlegen
 
 Es gibt **keine Selbstregistrierung** (`shouldCreateUser: false`). Der erste Admin wird von
-Hand angelegt, alle weiteren Nutzer danach über die Oberfläche unter *Benutzer*.
+Hand angelegt, alle weiteren Nutzer danach über die Oberfläche unter *Admin → Benutzer bearbeiten*.
 
 1. Supabase-Dashboard → *Authentication → Users → Add user* → E-Mail eintragen,
    *Auto Confirm User* aktivieren.
@@ -103,12 +103,12 @@ die Vercel-Domain als Site URL eintragen.
 app/
   login/                Zweistufiger OTP-Login
   (app)/                Alles hinter dem Auth-Guard
-    page.tsx            Statistik (Startseite)
-    tageseintrag/       Tageseintrag
-    admin/              Admin-Guard: role === 'admin'
-      statistik/        Auswertung aller Chatter
-      benutzer/         Benutzer- und Gruppenverwaltung
-    leads/              Lead Status — Leads aus der Google-Tabelle
+    page.tsx            Workreport Verlauf (Startseite)
+    tageseintrag/       Workreport — Zahlen erfassen
+    leads/              Meine Leads — aus der Google-Tabelle
+    admin/              Admin-Guard: role === 'admin', zwei Reiter
+      statistik/        Benutzer Übersicht
+      benutzer/         Benutzer bearbeiten
   api/admin/users/      Route Handler, nur Service-Role
 components/
   ui/                   Button, Input, Select, Modal, Segmented, Chip, Table, StatCard …
@@ -122,7 +122,7 @@ lib/
 supabase/migrations/
 ```
 
-## Lead Status
+## Meine Leads
 
 Die Leadliste kommt direkt aus einer Google-Tabelle und wird **nicht** in der Datenbank
 gespiegelt — sie wird in der App nie bearbeitet, also gibt es nichts zu speichern.
@@ -133,7 +133,7 @@ gespiegelt — sie wird in der App nie bearbeitet, also gibt es nichts zu speich
 - Ein Chatter sieht die Zeilen, deren Spalte **Lead von** seinem Profilnamen entspricht —
   verglichen ohne Groß-/Kleinschreibung und ohne Randleerzeichen. Der Abgleich passiert
   **serverseitig**, bevor irgendetwas den Browser erreicht.
-- Das Blatt wird 5 Minuten zwischengespeichert; *Aktualisieren* verwirft den Cache sofort.
+- Das Blatt wird 60 Sekunden zwischengespeichert; *Aktualisieren* verwirft den Cache sofort.
 
 ## Konventionen
 

@@ -16,7 +16,7 @@ export function Trichter({ totals }: { totals: MetricValues }) {
     return (
       <p className="px-4 py-12 text-center text-[14px] italic text-text-3">
         Noch keine Zahlen für diesen Zeitraum — der Trichter füllt sich mit dem ersten
-        Tageseintrag.
+        Workreport.
       </p>
     );
   }

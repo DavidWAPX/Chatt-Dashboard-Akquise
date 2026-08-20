@@ -350,7 +350,7 @@ export function Auswertung({ profileId, heading }: AuswertungProps) {
         ) : currentEntries.length === 0 ? (
           <EmptyState>
             Für diesen Zeitraum gibt es noch keine Zahlen. Trag deinen Tag unter
-            Tageseintrag ein.
+            Workreport ein.
           </EmptyState>
         ) : (
           <VerlaufsDiagramm
@@ -372,7 +372,7 @@ export function Auswertung({ profileId, heading }: AuswertungProps) {
               rows={currentEntries.slice(0, visibleRows)}
               rowKey={(row) => row.id}
               columns={columns}
-              empty="Noch keine Einträge. Trag deinen ersten Tag unter Tageseintrag ein."
+              empty="Noch keine Einträge. Trag deinen ersten Tag unter Workreport ein."
             />
 
             {currentEntries.length > visibleRows && (
