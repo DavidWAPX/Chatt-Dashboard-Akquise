@@ -61,9 +61,8 @@ export default async function SkriptPage() {
               {skript.titel}
             </h1>
             <p className="mt-3 max-w-[68ch] text-[14px] text-text-2">
-              Das komplette Skript zum Mitlesen. Neben jedem Textbaustein sitzt ein{" "}
-              <span className="text-text-1">Kopieren</span>-Knopf — einmal drücken,
-              dann kannst du den Text direkt in den Chat einfügen.
+              Die abgesetzten Blöcke sind die Nachrichten für den Chat, alles
+              Graue drumherum sind Hinweise für dich.
             </p>
           </div>
 

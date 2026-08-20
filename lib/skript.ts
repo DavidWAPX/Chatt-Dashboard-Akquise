@@ -29,8 +29,8 @@ export type SkriptBlock =
   | {
       art: "absatz";
       zeilen: SkriptZeile[];
-      /** Nur die Nachrichtenzeilen — das, was der Kopieren-Knopf übergibt. */
-      kopierText: string;
+      /** Enthält mindestens eine Zeile, die so in den Chat geht. */
+      nachricht: boolean;
     }
   | { art: "liste"; punkte: Array<{ html: string; text: string }> }
   | { art: "trenner" }
@@ -462,10 +462,7 @@ async function holeDokument(): Promise<SkriptErgebnis> {
     schreibe({
       art: "absatz",
       zeilen,
-      kopierText: zeilen
-        .filter((zeile) => !zeile.hinweis)
-        .map((zeile) => zeile.text)
-        .join("\n"),
+      nachricht: zeilen.some((zeile) => !zeile.hinweis),
     });
   }
 

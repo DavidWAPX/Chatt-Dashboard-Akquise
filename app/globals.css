@@ -406,26 +406,6 @@
   text-decoration-color: var(--gold-bright);
 }
 
-/* Der Kopieren-Knopf steht immer da, nur gedämpft, und tritt beim
-   Drüberfahren hervor. Ganz ausblenden wäre falsch: was man nicht sieht,
-   benutzt niemand — genau deshalb sind die Symbole in der Lead-Tabelle
-   ebenfalls sichtbar statt versteckt. */
-.skript-kopieren {
-  opacity: 0.55;
-  transition:
-    opacity var(--dur) var(--ease-ref),
-    background-color var(--dur) var(--ease-ref),
-    border-color var(--dur) var(--ease-ref),
-    color var(--dur) var(--ease-ref);
-}
-
-.skript-block:hover .skript-kopieren,
-.skript-block:focus-within .skript-kopieren,
-.skript-kopieren:hover,
-.skript-kopieren:focus-visible {
-  opacity: 1;
-}
-
 .gold-ghost-glow {
   box-shadow: none;
 }

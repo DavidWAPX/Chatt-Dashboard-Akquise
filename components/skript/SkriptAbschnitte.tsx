@@ -1,5 +1,4 @@
 import { cn } from "@/lib/cn";
-import { KopierButton } from "./KopierButton";
 import type { SkriptAbschnitt, SkriptBlock } from "@/lib/skript";
 
 /**
@@ -51,46 +50,31 @@ function Block({ block, vorspann }: { block: SkriptBlock; vorspann: boolean }) {
 
   /*
    * Ein Absatz kann beides enthalten: den Text, der an den Lead geht, und
-   * Regieanweisungen an den Chatter. Nur das Erste ist zum Kopieren da — der
-   * Knopf übergibt genau die Nachrichtenzeilen, und die Anweisungen daneben
-   * treten optisch zurück, statt sich als Nachricht auszugeben.
+   * Regieanweisungen an den Chatter. Das Erste steht abgesetzt im Rahmen —
+   * so ist auf einen Blick klar, was in den Chat kopiert wird und was nur
+   * dabeisteht. Kopiert wird von Hand, mit Maus und Tastatur.
    */
-  // Im Vorspann steht Rahmeninformation, kein Chattext — dort wird nichts
-  // zum Kopieren angeboten.
-  const kopierbar = !vorspann && block.kopierText !== "";
+  const nachricht = !vorspann && block.nachricht;
 
   return (
     <div
       className={cn(
-        "skript-block group mt-4 rounded-[10px] border px-4 py-3.5",
-        "transition-colors duration-[var(--dur)] ease-[var(--ease-ref)]",
-        kopierbar
-          ? "border-border-default bg-surface-2/40 hover:border-border-gold"
-          : "border-transparent",
+        "skript-block mt-4 rounded-[10px] border px-4 py-3.5",
+        nachricht ? "border-border-default bg-surface-2/40" : "border-transparent px-0 py-1",
       )}
     >
-      <div className="flex items-start justify-between gap-4">
-        <div className="skript-text min-w-0 text-[15px] leading-[1.7]">
-          {block.zeilen.map((zeile, index) => (
-            <p
-              key={index}
-              className={cn(
-                zeile.hinweis
-                  ? "skript-hinweis text-[13.5px] leading-[1.6] text-text-3"
-                  : "text-text-2",
-              )}
-              dangerouslySetInnerHTML={{ __html: zeile.html }}
-            />
-          ))}
-        </div>
-
-        {kopierbar && (
-          <KopierButton
-            text={block.kopierText}
-            label="Diese Nachricht kopieren"
-            className="skript-kopieren"
+      <div className="skript-text text-[15px] leading-[1.7]">
+        {block.zeilen.map((zeile, index) => (
+          <p
+            key={index}
+            className={cn(
+              zeile.hinweis
+                ? "skript-hinweis text-[13.5px] leading-[1.6] text-text-3"
+                : "text-text-2",
+            )}
+            dangerouslySetInnerHTML={{ __html: zeile.html }}
           />
-        )}
+        ))}
       </div>
     </div>
   );
