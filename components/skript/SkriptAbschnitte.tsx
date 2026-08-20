@@ -155,14 +155,13 @@ export function SkriptAbschnitte({ abschnitte }: { abschnitte: SkriptAbschnitt[]
           // verdecken, wenn man aus dem Inhaltsverzeichnis herspringt.
           className="scroll-mt-[150px] rounded-[12px] border border-panel-border bg-surface-1 p-5 tbl:p-7"
         >
-          <header className="mb-5 flex items-start gap-3.5 border-b border-border-soft pb-5">
-            <span
-              aria-hidden="true"
-              className="mt-[2px] flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border-gold bg-gold-dim font-display text-[12px] font-semibold tnum text-gold-bright"
-            >
+          {/* Zahl über dem Titel, beides mittig: der Kapitelkopf soll eine
+              Zäsur setzen, nicht als Zeile mitlaufen. */}
+          <header className="mb-6 flex flex-col items-center gap-3 border-b border-border-soft pb-6 text-center">
+            <span aria-hidden="true" className="skript-nummer shrink-0">
               {index + 1}
             </span>
-            <h2 className="min-w-0 font-display text-[17px] font-medium uppercase tracking-[0.04em] text-text-1 tbl:text-[19px]">
+            <h2 className="skript-kapitel min-w-0 font-display text-[19px] font-semibold uppercase tracking-[0.05em] tbl:text-[22px]">
               {abschnitt.titel}
             </h2>
           </header>

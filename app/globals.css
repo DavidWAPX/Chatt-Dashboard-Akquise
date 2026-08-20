@@ -54,6 +54,14 @@
   --blau-dim: #4d7cc726;
   --blau-rand: #4d7cc76b;
 
+  /* Rot für die Kapitelköpfe im Skript. Kräftiger als das gedeckte --danger,
+     das für Fehler reserviert bleibt — hier soll es leuchten, nicht warnen. */
+  --rot: #d92b36;
+  --rot-hell: #ff6b70;
+  --rot-dim: #d92b3626;
+  --rot-rand: #d92b3673;
+  --rot-schein: #d92b3666;
+
   --nav-inactive: #ffffffa6; /* nav label at rest */
   --nav-hover: #141414; /* --surface-hover under a hovered nav item */
 
@@ -429,35 +437,126 @@
 }
 
 /* Der Weg ins Google-Dokument ist die einzige Handlung auf dieser Seite —
-   entsprechend trägt der Knopf das volle Gold statt eines stillen Rahmens. */
+   entsprechend auffällig ist der Knopf: gebürstetes Gold mit Innenkante,
+   Schein nach außen und einem Glanz, der alle paar Sekunden darüberläuft. */
 .btn-gold {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   display: inline-flex;
-  height: 44px;
+  height: 46px;
   align-items: center;
   gap: 8px;
-  border-radius: 6px;
-  border: 1px solid var(--gold-bright);
-  background: linear-gradient(180deg, var(--gold-bright), var(--gold));
-  padding-inline: 20px;
-  font-size: 14px;
+  border-radius: 8px;
+  border: 1px solid #e8c98a;
+  background:
+    linear-gradient(
+      135deg,
+      #f0d9a0 0%,
+      var(--gold-bright) 28%,
+      var(--gold) 58%,
+      #c9a55e 100%
+    );
+  padding-inline: 22px;
+  font-family: var(--font-display), sans-serif;
+  font-size: 13.5px;
   font-weight: 600;
-  color: var(--on-gold);
-  box-shadow: var(--shadow-glow);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #1a1206;
+  box-shadow:
+    inset 0 1px 0 #fff6e0a6,
+    inset 0 -1px 0 #00000040,
+    0 6px 22px #94733766,
+    0 0 34px #9473374d;
   transition:
+    transform var(--dur) var(--ease-ref),
     box-shadow var(--dur) var(--ease-ref),
     filter var(--dur) var(--ease-ref);
 }
 
+/* Der Glanzstreifen liegt über der Fläche, aber unter der Schrift. */
+.btn-gold::after {
+  content: "";
+  position: absolute;
+  inset: -20% -40%;
+  z-index: -1;
+  background: linear-gradient(
+    105deg,
+    transparent 38%,
+    #ffffffa6 48%,
+    #ffffffd9 52%,
+    transparent 62%
+  );
+  transform: translateX(-110%);
+  animation: gold-glanz 5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes gold-glanz {
+  0%,
+  62% {
+    transform: translateX(-110%);
+  }
+  86%,
+  100% {
+    transform: translateX(110%);
+  }
+}
+
 .btn-gold:hover {
-  filter: brightness(1.08);
+  transform: translateY(-1px);
+  filter: brightness(1.06);
   box-shadow:
-    0 0 22px #94733766,
-    0 2px 10px #00000080;
+    inset 0 1px 0 #fff6e0cc,
+    inset 0 -1px 0 #00000040,
+    0 10px 28px #94733780,
+    0 0 46px #94733773;
+}
+
+.btn-gold:active {
+  transform: translateY(0);
 }
 
 .btn-gold:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px var(--focus-ring);
+  box-shadow:
+    inset 0 1px 0 #fff6e0a6,
+    0 0 0 3px var(--focus-ring),
+    0 6px 22px #94733766;
+}
+
+/* ==========================================================================
+   Kapitelkopf im Skript — Zahl über dem Titel, beides zentriert und rot
+   ========================================================================== */
+
+.skript-nummer {
+  display: flex;
+  height: 38px;
+  width: 38px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid var(--rot-rand);
+  background: radial-gradient(circle at 50% 30%, var(--rot-dim), transparent 70%);
+  font-family: var(--font-display), sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--rot-hell);
+  text-shadow: 0 0 14px var(--rot-schein);
+  box-shadow:
+    0 0 18px #d92b3640,
+    inset 0 0 14px #d92b361a;
+}
+
+.skript-kapitel {
+  background: linear-gradient(180deg, #ff8a8e 0%, var(--rot-hell) 42%, var(--rot) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  /* Der Schein kommt per Filter, weil der Text selbst durchsichtig ist und
+     ein text-shadow darum unsichtbar bliebe. */
+  filter: drop-shadow(0 0 16px #d92b3659);
 }
 
 .gold-ghost-glow {
