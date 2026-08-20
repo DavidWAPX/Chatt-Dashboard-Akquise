@@ -1,6 +1,14 @@
 import { cn } from "@/lib/cn";
 
-type Tone = "won" | "lost" | "followup" | "alert" | "open" | "termin" | "neutral";
+type Tone =
+  | "won"
+  | "lost"
+  | "followup"
+  | "alert"
+  | "open"
+  | "termin"
+  | "inactive"
+  | "neutral";
 
 const TONE_CLASS: Record<Tone, string> = {
   won: "chip-won",
@@ -9,6 +17,7 @@ const TONE_CLASS: Record<Tone, string> = {
   alert: "chip-alert",
   open: "chip-open",
   termin: "chip-termin",
+  inactive: "chip-inactive",
   neutral: "",
 };
 
@@ -35,11 +44,23 @@ function toneFor(status: string): Tone {
   // Unqualifiziert und alles Verlorene — dasselbe Rot.
   if (value.includes("unqualifiziert")) return "lost";
   if (value.includes("verloren")) return "lost";
+  // "Kauf abgelehnt" ist eine Absage des Kunden — dieselbe Kategorie wie Verloren.
+  if (value.includes("abgelehnt")) return "lost";
+
+  // Leads, an denen niemand mehr arbeiten kann: gesperrt oder falsche Daten.
+  // Bewusst nicht rot — hier ist kein Deal verloren gegangen, der Kontakt ist
+  // nur raus aus der Liste.
+  if (value.includes("blacklist")) return "inactive";
+  if (value.includes("falsche telefon")) return "inactive";
+  if (value === "fake") return "inactive";
 
   // Alles mit Followup — "FU" steht im Blatt für Followup.
   if (value.includes("follow") || /\bfu\b/.test(value)) return "followup";
 
+  // Offen und in Arbeit: der Lead wartet auf den nächsten Schritt.
   if (value.includes("entscheidung ausstehend")) return "open";
+  if (value.includes("erstkontakt")) return "open";
+  if (value.includes("cc offen")) return "open";
 
   // Alles andere bleibt bewusst neutral, statt eine Farbe zu raten.
   return "neutral";

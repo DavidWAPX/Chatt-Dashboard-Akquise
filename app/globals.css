@@ -41,6 +41,9 @@
   --status-alert: #ffffffcc; /* No Show / abgesagt — helleres, auffälligeres Grau */
   --status-open: #ffffff; /* Entscheidung ausstehend — Weiß */
   --status-termin: #b68f44; /* alles mit Termin — Gold */
+  --status-inactive: #8ca3b8; /* Blacklist, Fake, Falsche Telefonnummer — kühles
+                                Slate: sichtbar aussortiert, ohne mit dem Rot einer
+                                echten Absage oder dem Gold eines Termins zu konkurrieren */
 
   --nav-inactive: #ffffffa6; /* nav label at rest */
   --nav-hover: #141414; /* --surface-hover under a hovered nav item */
@@ -284,6 +287,7 @@
 .chip-alert { --tone: var(--status-alert); }
 .chip-open { --tone: var(--status-open); }
 .chip-termin { --tone: var(--status-termin); }
+.chip-inactive { --tone: var(--status-inactive); }
 
 .gold-ghost-glow {
   box-shadow: none;
