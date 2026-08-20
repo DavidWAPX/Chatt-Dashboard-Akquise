@@ -61,23 +61,41 @@ export function LeadListe({ profileName, leads, fetchedAt, problem }: LeadListeP
     ];
   }, [leads]);
 
+  /**
+   * One lowercase haystack per lead, built once. Searching used to lowercase
+   * seven fields of every row on every keystroke — with a thousand leads that
+   * is thousands of conversions per character typed.
+   */
+  const haystacks = useMemo(
+    () =>
+      new Map(
+        leads.map((lead) => [
+          lead.id,
+          [
+            lead.name,
+            lead.email,
+            lead.telefon,
+            lead.lead_status,
+            lead.notizen,
+            lead.setting_activity,
+            lead.closing_activity,
+          ]
+            .join(" ")
+            .toLowerCase(),
+        ]),
+      ),
+    [leads],
+  );
+
   const visible = useMemo(() => {
     const term = search.trim().toLowerCase();
     return leads.filter((lead) => {
       if (status !== ALL && lead.lead_status.trim() !== status) return false;
       if (term === "") return true;
-      // Search covers the hidden long texts too, not just what is on screen.
-      return [
-        lead.name,
-        lead.email,
-        lead.telefon,
-        lead.lead_status,
-        lead.notizen,
-        lead.setting_activity,
-        lead.closing_activity,
-      ].some((value) => value.toLowerCase().includes(term));
+      // Covers the long texts behind "Klick" too, not just what is on screen.
+      return haystacks.get(lead.id)?.includes(term) ?? false;
     });
-  }, [leads, search, status]);
+  }, [leads, search, status, haystacks]);
 
   const filtered = search.trim() !== "" || status !== ALL;
 

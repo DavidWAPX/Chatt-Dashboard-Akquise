@@ -1,6 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  startTransition,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Panel } from "@/components/ui/Panel";
@@ -27,6 +33,7 @@ import {
 } from "@/lib/metrics";
 import {
   RANGES,
+  type RangeKey,
   canGoForward,
   formatDateLabel,
   getBuckets,
@@ -60,15 +67,28 @@ export function Auswertung({ profileId, heading }: AuswertungProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Filter state lives in the URL so reload and the back button behave.
-  const rangeParam = searchParams.get("range");
-  const platformParam = searchParams.get("platform");
-  const range = isRangeKey(rangeParam) ? rangeParam : "day";
-  const platform: Platform | "all" = isPlatform(platformParam)
-    ? platformParam
+  // The URL stays the shareable source of truth, but it is not what the
+  // controls render from: routing to it first made every click wait on a
+  // server round-trip before anything moved. Local state answers instantly,
+  // the URL is brought in line afterwards.
+  const urlRange = isRangeKey(searchParams.get("range"))
+    ? (searchParams.get("range") as RangeKey)
+    : "day";
+  const urlPlatform: Platform | "all" = isPlatform(searchParams.get("platform"))
+    ? (searchParams.get("platform") as Platform)
     : "all";
-  const anchor = parseAnchor(searchParams.get("date"));
+  const urlDate = searchParams.get("date") ?? "";
 
+  const [range, setRange] = useState<RangeKey>(urlRange);
+  const [platform, setPlatform] = useState<Platform | "all">(urlPlatform);
+  const [dateISO, setDateISO] = useState(urlDate);
+
+  // Follow the URL when it changes from outside — back button, a shared link.
+  useEffect(() => setRange(urlRange), [urlRange]);
+  useEffect(() => setPlatform(urlPlatform), [urlPlatform]);
+  useEffect(() => setDateISO(urlDate), [urlDate]);
+
+  const anchor = useMemo(() => parseAnchor(dateISO || null), [dateISO]);
   const period = useMemo(() => getPeriod(range, anchor), [range, anchor]);
   const previous = useMemo(
     () => previousPeriod(range, anchor),
@@ -82,13 +102,18 @@ export function Auswertung({ profileId, heading }: AuswertungProps) {
   const [metricA, setMetricA] = useState<MetricKey>("first_messages");
   const [metricB, setMetricB] = useState<MetricKey | "none">("conversations");
 
-  const setParam = useCallback(
+  /** Writes the filter into the URL without holding up the render. */
+  const syncUrl = useCallback(
     (updates: Record<string, string>) => {
       const next = new URLSearchParams(searchParams.toString());
       for (const [key, value] of Object.entries(updates)) {
         next.set(key, value);
       }
-      router.replace(`?${next.toString()}`, { scroll: false });
+      // startTransition keeps the navigation off the interaction's critical
+      // path, so the control repaints on the same frame as the click.
+      startTransition(() => {
+        router.replace(`?${next.toString()}`, { scroll: false });
+      });
     },
     [router, searchParams],
   );
@@ -231,7 +256,10 @@ export function Auswertung({ profileId, heading }: AuswertungProps) {
             <Segmented
               label="Zeitraum"
               value={range}
-              onChange={(next) => setParam({ range: next })}
+              onChange={(next) => {
+                setRange(next);
+                syncUrl({ range: next });
+              }}
               options={RANGES.map((r) => ({ key: r.key, label: r.label }))}
             />
           </div>
@@ -241,7 +269,10 @@ export function Auswertung({ profileId, heading }: AuswertungProps) {
             <Segmented
               label="Plattform"
               value={platform}
-              onChange={(next) => setParam({ platform: next })}
+              onChange={(next) => {
+                setPlatform(next);
+                syncUrl({ platform: next });
+              }}
               options={PLATFORM_OPTIONS}
             />
           </div>
@@ -250,9 +281,11 @@ export function Auswertung({ profileId, heading }: AuswertungProps) {
         <div className="flex items-center justify-center gap-4">
           <IconButton
             label="Vorherige Periode"
-            onClick={() =>
-              setParam({ date: toISODate(shiftAnchor(range, anchor, -1)) })
-            }
+            onClick={() => {
+              const next = toISODate(shiftAnchor(range, anchor, -1));
+              setDateISO(next);
+              syncUrl({ date: next });
+            }}
           >
             <ChevronLeft size={16} aria-hidden="true" />
           </IconButton>
@@ -272,9 +305,11 @@ export function Auswertung({ profileId, heading }: AuswertungProps) {
                 ? "Nächste Periode"
                 : "Weiter geht es nicht — das ist die aktuelle Periode."
             }
-            onClick={() =>
-              setParam({ date: toISODate(shiftAnchor(range, anchor, 1)) })
-            }
+            onClick={() => {
+              const next = toISODate(shiftAnchor(range, anchor, 1));
+              setDateISO(next);
+              syncUrl({ date: next });
+            }}
           >
             <ChevronRight size={16} aria-hidden="true" />
           </IconButton>

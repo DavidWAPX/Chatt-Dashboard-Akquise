@@ -1,6 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  startTransition,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 import { Panel } from "@/components/ui/Panel";
@@ -19,7 +25,10 @@ export function AdminStatistik() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const selectedId = searchParams.get("chatter");
+  const urlSelected = searchParams.get("chatter");
+  // Local first, URL after — the highlight must not wait on the router.
+  const [selectedId, setSelectedId] = useState<string | null>(urlSelected);
+  useEffect(() => setSelectedId(urlSelected), [urlSelected]);
   const rangeParam = searchParams.get("range");
   const range = isRangeKey(rangeParam) ? rangeParam : "day";
   const anchor = parseAnchor(searchParams.get("date"));
@@ -98,10 +107,13 @@ export function AdminStatistik() {
 
   const selectChatter = useCallback(
     (id: string | null) => {
+      setSelectedId(id);
       const next = new URLSearchParams(searchParams.toString());
       if (id) next.set("chatter", id);
       else next.delete("chatter");
-      router.replace(`?${next.toString()}`, { scroll: false });
+      startTransition(() => {
+        router.replace(`?${next.toString()}`, { scroll: false });
+      });
     },
     [router, searchParams],
   );

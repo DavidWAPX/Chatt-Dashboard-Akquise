@@ -71,9 +71,9 @@
   --shadow-glow: 0 0 15px #94733740;
   --danger-glow: 0 0 15px #cf667940;
   --ease-ref: cubic-bezier(0.16, 1, 0.3, 1);
-  /* One duration for every hover response: quick enough to feel instant,
-     long enough not to snap. */
-  --dur: 200ms;
+  /* One duration for every hover response. Short on purpose: at this length
+     the colour change reads as immediate rather than as an animation. */
+  --dur: 110ms;
 }
 
 @theme inline {
