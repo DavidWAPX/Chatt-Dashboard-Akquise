@@ -224,7 +224,7 @@ export function UserAdmin({ currentUserId }: { currentUserId: string }) {
       >
         <p className="text-[13px] text-text-2 break-anywhere">
           Willst du <strong className="text-text-1">{pendingDelete?.name}</strong> wirklich
-          entfernen? Alle Einträge dieses Nutzers werden gelöscht.
+          entfernen? Alle Workreports dieses Nutzers werden gelöscht.
         </p>
       </Modal>
     </>
