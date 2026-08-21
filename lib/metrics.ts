@@ -13,12 +13,8 @@ export const METRICS: ReadonlyArray<{
   { key: "appointments", label: "Termin gelegt", short: "Termine" },
 ] as const;
 
-export const METRIC_KEYS = METRICS.map((m) => m.key);
-
-export const METRIC_LABEL: Record<MetricKey, string> = METRICS.reduce(
-  (acc, m) => ({ ...acc, [m.key]: m.label }),
-  {} as Record<MetricKey, string>,
-);
+/* Nur hier gebraucht — sumMetrics und emptyMetrics arbeiten damit. */
+const METRIC_KEYS = METRICS.map((m) => m.key);
 
 /** The platforms the app offers. X was dropped from the product. */
 export const PLATFORMS: ReadonlyArray<{ key: Platform; label: string }> = [
@@ -40,7 +36,7 @@ export function isPlatform(value: string | null | undefined): value is Platform 
   return PLATFORMS.some((p) => p.key === value);
 }
 
-export function emptyMetrics(): MetricValues {
+function emptyMetrics(): MetricValues {
   return { first_messages: 0, followups: 0, appointments: 0 };
 }
 

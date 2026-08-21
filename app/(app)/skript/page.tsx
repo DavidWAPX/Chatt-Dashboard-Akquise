@@ -88,7 +88,9 @@ export default async function SkriptPage() {
               langen Skript nie die Orientierung verliert. */}
           <nav
             aria-label="Abschnitte des Skripts"
-            className="hidden lg:sticky lg:top-[110px] lg:block rounded-[12px] border border-panel-border bg-surface-1 p-4"
+            // top: die Navigation ist zweizeilig und endet bei 116px — darunter,
+            // sonst schöbe sich das Verzeichnis beim Scrollen unter die Leisten.
+            className="hidden lg:sticky lg:top-[148px] lg:block rounded-[12px] border border-panel-border bg-surface-1 p-4"
           >
             <p className="mb-3 px-2 font-display text-[11px] font-medium uppercase tracking-[0.09em] text-gold">
               Inhalt

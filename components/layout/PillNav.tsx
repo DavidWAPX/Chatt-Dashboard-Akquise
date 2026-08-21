@@ -15,7 +15,7 @@ import { cn } from "@/lib/cn";
 import type { UserRole } from "@/lib/types";
 
 /** Termin buchen führt zu Calendly — außerhalb dieser App. */
-export const CALENDLY_URL =
+const CALENDLY_URL =
   "https://calendly.com/d/dtnf-7n9-pzj/dein-kostenloses-erstgesprach-klon";
 
 /* Daily work first, then its history, then administration. User management

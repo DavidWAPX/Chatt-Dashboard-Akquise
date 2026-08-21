@@ -60,7 +60,7 @@ export type LeadsResult =
   | { ok: false; reason: "unreachable" | "not-shared" };
 
 /** Names are typed by hand in the sheet — compare them forgivingly. */
-export function normaliseName(value: string): string {
+function normaliseName(value: string): string {
   return value.trim().toLowerCase().replace(/\s+/g, " ");
 }
 

@@ -7,6 +7,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Panel } from "@/components/ui/Panel";
@@ -16,7 +17,24 @@ import { Table, type Column } from "@/components/ui/Table";
 import { PlatformLogo } from "@/components/ui/PlatformLogo";
 import { Button, IconButton } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { VerlaufsDiagramm } from "./VerlaufsDiagramm";
+/*
+ * recharts wiegt rund 190 kB und steckt nur in diesem einen Diagramm. Als
+ * fester Import lag es im ersten Ladepaket jeder Auswertungsseite — gemessen
+ * 303 kB First Load JS. Nachgeladen wird es erst, wenn die Seite steht; der
+ * Platzhalter hat dieselbe Höhe, damit nichts springt.
+ */
+const VerlaufsDiagramm = dynamic(
+  () => import("./VerlaufsDiagramm").then((m) => m.VerlaufsDiagramm),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex flex-col gap-5" aria-hidden="true">
+        <div className="h-[18px] w-[380px] max-w-full rounded-[4px] bg-surface-2" />
+        <div className="h-[300px] w-full rounded-[8px] bg-surface-1" />
+      </div>
+    ),
+  },
+);
 import { createClient } from "@/lib/supabase/client";
 import {
   METRICS,

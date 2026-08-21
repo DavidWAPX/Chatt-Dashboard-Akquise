@@ -78,10 +78,6 @@ type Cache = { wert: SkriptErgebnis; um: number; laeuft?: Promise<void> } | null
 const store = globalThis as typeof globalThis & { __skriptCache?: Cache };
 const TTL_MS = 60 * 1000;
 
-export function invalidateSkriptCache(): void {
-  store.__skriptCache = null;
-}
-
 /* ---------------------------------------------------------------- Stil --- */
 
 interface Stil {
