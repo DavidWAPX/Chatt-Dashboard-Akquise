@@ -4,21 +4,21 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, CalendarDays, Check, Info } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { NumberInput } from "@/components/ui/Input";
+import { NumberInput, TextArea } from "@/components/ui/Input";
 import { Segmented } from "@/components/ui/Segmented";
 import { Panel } from "@/components/ui/Panel";
 import { PlatformLogo } from "@/components/ui/PlatformLogo";
 import { Toast } from "@/components/ui/Toast";
 import { createClient } from "@/lib/supabase/client";
-import { METRICS, PLATFORMS, PLATFORM_LABEL } from "@/lib/metrics";
+import { METRICS, PLATFORMS, PLATFORM_LABEL, TEXTFELDER, emptyTexts } from "@/lib/metrics";
 import { todayISO } from "@/lib/date-ranges";
-import type { MetricKey, Platform } from "@/lib/types";
+import type { MetricKey, Platform, TextKey } from "@/lib/types";
 
 type FormValues = Record<MetricKey, number | "">;
 
 const EMPTY_FORM: FormValues = {
   first_messages: "",
-  followups: "",
+  replies: "",
   appointments: "",
 };
 
@@ -52,6 +52,7 @@ export function EntryForm({ profileId }: { profileId: string }) {
 
   const [platform, setPlatform] = useState<Platform>("tiktok");
   const [values, setValues] = useState<FormValues>(EMPTY_FORM);
+  const [texte, setTexte] = useState<Record<TextKey, string>>(emptyTexts());
   const [existing, setExisting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -87,9 +88,16 @@ export function EntryForm({ profileId }: { profileId: string }) {
           {} as FormValues,
         ),
       );
+      setTexte(
+        TEXTFELDER.reduce(
+          (acc, feld) => ({ ...acc, [feld.key]: data[feld.key] ?? "" }),
+          emptyTexts(),
+        ),
+      );
     } else {
       setExisting(false);
       setValues(EMPTY_FORM);
+      setTexte(emptyTexts());
     }
 
     setDirty(false);
@@ -124,6 +132,12 @@ export function EntryForm({ profileId }: { profileId: string }) {
     setSaved(false);
   }
 
+  function updateText(key: TextKey, value: string) {
+    setTexte((current) => ({ ...current, [key]: value }));
+    setDirty(true);
+    setSaved(false);
+  }
+
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     setSaving(true);
@@ -136,6 +150,7 @@ export function EntryForm({ profileId }: { profileId: string }) {
         entry_date: today,
         platform,
         ...toNumbers(values),
+        ...texte,
       },
       // Upsert on the unique key, so saving twice corrects the row
       // instead of creating a second one.
@@ -206,6 +221,25 @@ export function EntryForm({ profileId }: { profileId: string }) {
                   onValueChange={(next) => updateValue(metric.key, next)}
                   disabled={loading}
                   placeholder="0"
+                />
+              ))}
+            </div>
+          </fieldset>
+
+          <fieldset className="mt-8 border-0 p-0">
+            <legend className="mb-3 font-sans text-[13px] font-semibold text-text-1">
+              Wie du gearbeitet hast
+            </legend>
+
+            <div className="grid gap-5">
+              {TEXTFELDER.map((feld) => (
+                <TextArea
+                  key={feld.key}
+                  label={feld.label}
+                  value={texte[feld.key]}
+                  placeholder={feld.platzhalter}
+                  onChange={(event) => updateText(feld.key, event.target.value)}
+                  disabled={loading}
                 />
               ))}
             </div>

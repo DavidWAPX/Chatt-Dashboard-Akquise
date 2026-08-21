@@ -26,8 +26,12 @@ create table entries (
   entry_date      date not null,
   platform        platform not null,
   first_messages  integer not null default 0 check (first_messages  >= 0),
-  followups       integer not null default 0 check (followups       >= 0),
+  replies         integer not null default 0 check (replies         >= 0),
   appointments    integer not null default 0 check (appointments    >= 0),
+  -- Freitexte: welcher Opener lief, wonach gesucht wurde, was auffiel.
+  used_opener     text    not null default '',
+  search_terms    text    not null default '',
+  notes           text    not null default '',
   created_at      timestamptz not null default now(),
   updated_at      timestamptz not null default now(),
   -- One entry per user, date and platform. Saving is an upsert on this key,

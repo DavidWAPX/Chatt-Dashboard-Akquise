@@ -32,7 +32,7 @@ const LABEL_COLOR = "var(--text-2)";
  */
 export const METRIC_COLOR: Record<MetricKey, string> = {
   first_messages: "var(--gold-bright)",
-  followups: "var(--status-inactive)",
+  replies: "var(--status-inactive)",
   appointments: "var(--status-won)",
 };
 

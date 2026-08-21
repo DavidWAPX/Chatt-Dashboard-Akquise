@@ -5,10 +5,11 @@ export type UserRole = "user" | "admin";
    plötzlich einem unbekannten Typ entsprechen. */
 export type Platform = "tiktok" | "instagram" | "facebook" | "x";
 
-/* Drei Kennzahlen statt sechs. Die Spalten conversations, qualified und
-   unqualified stehen weiter in der Datenbank (not null default 0) und stören
-   dort niemanden — die App schreibt und liest sie schlicht nicht mehr. */
-export type MetricKey = "first_messages" | "followups" | "appointments";
+/* Die drei Zahlen, die ein Workreport erfasst. */
+export type MetricKey = "first_messages" | "replies" | "appointments";
+
+/** Die drei Freitextfelder eines Workreports. */
+export type TextKey = "used_opener" | "search_terms" | "notes";
 
 /* These are type aliases rather than interfaces on purpose: supabase-js
    requires rows to be assignable to Record<string, unknown>, and only type
@@ -23,15 +24,17 @@ export type Profile = {
 };
 
 export type MetricValues = Record<MetricKey, number>;
+export type TextValues = Record<TextKey, string>;
 
-export type Entry = MetricValues & {
-  id: string;
-  profile_id: string;
-  entry_date: string; // yyyy-MM-dd
-  platform: Platform;
-  created_at: string;
-  updated_at: string;
-};
+export type Entry = MetricValues &
+  TextValues & {
+    id: string;
+    profile_id: string;
+    entry_date: string; // yyyy-MM-dd
+    platform: Platform;
+    created_at: string;
+    updated_at: string;
+  };
 
 /** One row of the Google Sheet. Read-only — never stored, never written. */
 export type Lead = {

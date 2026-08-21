@@ -1,7 +1,7 @@
 "use client";
 
 import { forwardRef, useId } from "react";
-import type { InputHTMLAttributes } from "react";
+import type { InputHTMLAttributes, TextareaHTMLAttributes } from "react";
 import { Search } from "lucide-react";
 import { cn } from "@/lib/cn";
 
@@ -116,6 +116,52 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
         {error && (
           <p id={messageId} className="mt-2 text-[13px] text-danger">
             {error}
+          </p>
+        )}
+      </div>
+    );
+  },
+);
+
+interface TextAreaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
+  label: string;
+  hint?: string;
+}
+
+/**
+ * Mehrzeiliges Feld für die Freitexte im Workreport. Es teilt sich Rahmen,
+ * Farben und Fokusring mit den einzeiligen Feldern — nur die Höhe ist eine
+ * andere, damit man sieht, dass hier ein Satz erwartet wird und keine Zahl.
+ */
+export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
+  function TextArea({ label, hint, className, id, ...rest }, ref) {
+    const generatedId = useId();
+    const inputId = id ?? generatedId;
+    const messageId = `${inputId}-message`;
+
+    return (
+      <div className="w-full">
+        <label
+          htmlFor={inputId}
+          className="mb-2 block font-display text-[12px] font-normal uppercase tracking-[0.05em] text-text-2"
+        >
+          {label}
+        </label>
+        <textarea
+          ref={ref}
+          id={inputId}
+          rows={3}
+          aria-describedby={hint ? messageId : undefined}
+          className={cn(
+            FIELD,
+            "h-auto min-h-[84px] resize-y py-[12px] leading-[1.6]",
+            className,
+          )}
+          {...rest}
+        />
+        {hint && (
+          <p id={messageId} className="mt-2 text-[12.5px] text-text-3">
+            {hint}
           </p>
         )}
       </div>

@@ -9,7 +9,7 @@ import {
 } from "react";
 import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, FileText } from "lucide-react";
 import { Panel } from "@/components/ui/Panel";
 import { Segmented } from "@/components/ui/Segmented";
 import { StatCard } from "@/components/ui/StatCard";
@@ -17,6 +17,8 @@ import { Table, type Column } from "@/components/ui/Table";
 import { PlatformLogo } from "@/components/ui/PlatformLogo";
 import { Button, IconButton } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Modal } from "@/components/ui/Modal";
+import { InfoButton } from "@/components/leads/InfoButton";
 /*
  * recharts wiegt rund 190 kB und steckt nur in diesem einen Diagramm. Als
  * fester Import lag es im ersten Ladepaket jeder Auswertungsseite — gemessen
@@ -38,6 +40,7 @@ const VerlaufsDiagramm = dynamic(
 import { createClient } from "@/lib/supabase/client";
 import {
   METRICS,
+  TEXTFELDER,
   PLATFORMS,
   PLATFORM_LABEL,
   filterByPlatform,
@@ -112,6 +115,8 @@ export function Auswertung({ profileId, heading }: AuswertungProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [visibleRows, setVisibleRows] = useState(PAGE_SIZE);
+  /** Der Workreport, dessen Freitexte gerade offen liegen. */
+  const [offen, setOffen] = useState<Entry | null>(null);
 
   /** Writes the filter into the URL without holding up the render. */
   const syncUrl = useCallback(
@@ -209,7 +214,7 @@ export function Auswertung({ profileId, heading }: AuswertungProps) {
       key: "date",
       head: "Datum",
       isTitle: true,
-      width: "26%",
+      width: "22%",
       cell: (row) => (
         <span className="font-sans text-[14px] font-medium tnum text-text-1">
           {formatDateLabel(row.entry_date)}
@@ -219,7 +224,7 @@ export function Auswertung({ profileId, heading }: AuswertungProps) {
     {
       key: "platform",
       head: "Plattform",
-      width: "22%",
+      width: "20%",
       cell: (row) => (
         <span className="inline-flex items-center gap-2 whitespace-nowrap text-[13px] text-text-1">
           <PlatformLogo platform={row.platform} size={15} />
@@ -231,13 +236,26 @@ export function Auswertung({ profileId, heading }: AuswertungProps) {
       key: metric.key,
       head: metric.short,
       align: "right" as const,
-      width: `${Math.round(52 / METRICS.length)}%`,
+      width: "14%",
       cell: (row: Entry) => (
         <span className="text-[14px] tnum text-text-1" title={metric.label}>
           {formatNumber(row[metric.key])}
         </span>
       ),
     })),
+    {
+      key: "texte",
+      head: "Notizen",
+      width: "12%",
+      cell: (row) => (
+        <InfoButton
+          text={TEXTFELDER.map((feld) => row[feld.key] ?? "").join("")}
+          label="Notizen zu diesem Workreport"
+          icon={FileText}
+          onOpen={() => setOffen(row)}
+        />
+      ),
+    },
   ];
 
   const leer = !loading && currentEntries.length === 0;
@@ -376,6 +394,26 @@ export function Auswertung({ profileId, heading }: AuswertungProps) {
           </>
         )}
       </Panel>
+
+      <Modal
+        open={offen !== null}
+        title={offen ? formatDateLabel(offen.entry_date) : ""}
+        onClose={() => setOffen(null)}
+      >
+        <div className="flex flex-col gap-5">
+          {offen &&
+            TEXTFELDER.map((feld) => (
+              <div key={feld.key}>
+                <p className="font-display text-[11px] font-medium uppercase tracking-[0.08em] text-gold">
+                  {feld.kurz}
+                </p>
+                <p className="mt-1.5 whitespace-pre-line text-[14px] leading-[1.7] text-text-2 break-anywhere">
+                  {offen[feld.key]?.trim() ? offen[feld.key] : "—"}
+                </p>
+              </div>
+            ))}
+        </div>
+      </Modal>
     </>
   );
 }
