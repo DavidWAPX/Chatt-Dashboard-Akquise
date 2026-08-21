@@ -57,7 +57,9 @@ export function PillNav({ role }: { role: UserRole }) {
      * Zierde — ein fixiertes Element mit left-1/2 bekommt sonst nur die halbe
      * Fensterbreite zugeteilt und schneidet den letzten Eintrag ab.
      */
-    <div className="fixed left-1/2 top-4 z-50 flex w-max max-w-[calc(100vw-24px)] -translate-x-1/2 flex-col items-center gap-2">
+    <>
+      <div aria-hidden="true" className="nav-schleier" />
+      <div className="fixed left-1/2 top-4 z-50 flex w-max max-w-[calc(100vw-24px)] -translate-x-1/2 flex-col items-center gap-2">
       <nav
         aria-label="Hauptnavigation"
         className={cn(
@@ -132,6 +134,7 @@ export function PillNav({ role }: { role: UserRole }) {
           Termin Buchen
         </a>
       </nav>
-    </div>
+      </div>
+    </>
   );
 }

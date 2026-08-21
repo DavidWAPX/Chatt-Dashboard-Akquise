@@ -60,7 +60,7 @@ function Block({ block, vorspann }: { block: SkriptBlock; vorspann: boolean }) {
 
   if (block.art === "untertitel") {
     return (
-      <h3 className="mt-7 font-display text-[13px] font-semibold uppercase tracking-[0.07em] text-gold first:mt-0">
+      <h3 className="skript-untertitel mt-7 font-display text-[13px] font-semibold uppercase tracking-[0.07em] text-gold first:mt-0">
         {block.text}
       </h3>
     );

@@ -304,6 +304,26 @@
   overflow-wrap: anywhere;
 }
 
+/* Beim Scrollen läuft der Inhalt unter den schwebenden Leisten durch und
+   drängt sich in ihre Zwischenräume. Dieser Schleier lässt ihn vorher
+   auslaufen — die Leisten stehen damit auf ruhigem Grund statt auf Text. */
+.nav-schleier {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 132px;
+  z-index: 40;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    var(--bg) 0%,
+    var(--bg) 52%,
+    color-mix(in srgb, var(--bg) 70%, transparent) 78%,
+    transparent 100%
+  );
+}
+
 /* The floating bar — reference --shadow-glow, no invented layers. */
 .nav-glow {
   box-shadow: var(--shadow-glow);
@@ -375,7 +395,12 @@
 
 .btn-icon-action {
   display: inline-flex;
-  height: 32px;
+  height: 36px;
+  /* min-width statt nur width:100%: in der Kartenansicht steht der Knopf in
+     einer Zelle, die sich auf ihren Inhalt zusammenzieht — dort ergäbe 100%
+     rund 30px, und der Knopf sähe gequetscht aus. 44px sind zugleich die
+     Mindestgröße, die sich auf einem Touchscreen zuverlässig treffen lässt. */
+  min-width: 44px;
   width: 100%;
   max-width: 64px;
   align-items: center;
@@ -432,6 +457,17 @@
    Der Text kommt aus einem Google-Dokument; hier bekommt er die Typografie
    dieser App statt der von Google.
    ========================================================================== */
+
+/* Das Dokument enthält Ketten ohne Leerzeichen
+   ("Auszubildende/Selbstständige/Arbeitslose/Schüler/…"). Ohne diese Regel
+   schiebt so eine Zeile auf dem Handy die ganze Seite über den Bildschirm
+   hinaus — sichtbar als toter Rand rechts und abgeschnittener Text. */
+.skript-text,
+.skript-hinweis,
+.skript-kapitel,
+.skript-untertitel {
+  overflow-wrap: anywhere;
+}
 
 .skript-text strong {
   font-weight: 600;
