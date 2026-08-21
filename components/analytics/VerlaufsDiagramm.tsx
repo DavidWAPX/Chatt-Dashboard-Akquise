@@ -114,6 +114,21 @@ export function VerlaufsDiagramm({ entries, range, period }: VerlaufsDiagrammPro
     });
   }, [entries, range, period]);
 
+  /*
+   * Die Achse muss so breit sein wie ihre größte Beschriftung. Fest gesetzte
+   * 44px reichten nur bis dreistellig — ab 1.000 schnitt die Tausenderstelle
+   * links ab, zumal der negative Außenabstand die Achse zusätzlich aus dem
+   * Bild schob.
+   */
+  const achsenbreite = useMemo(() => {
+    const groesster = data.reduce((max, punkt) => {
+      const werte = METRICS.map((m) => Number(punkt[m.key] ?? 0));
+      return Math.max(max, ...werte);
+    }, 0);
+    // 8px je Zeichen plus Platz für den Strich zur Achse.
+    return Math.max(44, formatNumber(groesster).length * 8 + 16);
+  }, [data]);
+
   const axisProps = {
     stroke: AXIS_COLOR,
     tick: { fill: LABEL_COLOR, fontSize: 12 },
@@ -140,7 +155,7 @@ export function VerlaufsDiagramm({ entries, range, period }: VerlaufsDiagrammPro
 
       <div className="h-[300px] w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={data} margin={{ top: 12, right: 8, bottom: 0, left: -12 }}>
+          <ComposedChart data={data} margin={{ top: 12, right: 8, bottom: 0, left: 0 }}>
             <defs>
               {METRICS.map((metric) => (
                 <linearGradient
@@ -168,7 +183,14 @@ export function VerlaufsDiagramm({ entries, range, period }: VerlaufsDiagrammPro
             {/* Dashed grid recedes behind the data instead of caging it. */}
             <CartesianGrid stroke={AXIS_COLOR} strokeDasharray="2 6" vertical={false} />
             <XAxis dataKey="label" {...axisProps} interval="preserveStartEnd" />
-            <YAxis allowDecimals={false} width={44} {...axisProps} />
+            <YAxis
+              allowDecimals={false}
+              width={achsenbreite}
+              /* Dieselbe Schreibweise wie in den Kacheln und der Tabelle:
+                 18.000 statt 18000. */
+              tickFormatter={(wert: number) => formatNumber(wert)}
+              {...axisProps}
+            />
             <Tooltip
               content={<ChartTooltip />}
               cursor={
