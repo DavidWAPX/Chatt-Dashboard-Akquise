@@ -97,6 +97,22 @@ Repository importieren, die drei Environment-Variablen aus `.env.local` in den P
 Einstellungen hinterlegen, deployen. In Supabase unter *Authentication → URL Configuration*
 die Vercel-Domain als Site URL eintragen.
 
+Zwei Stolpersteine, beide schon einmal getreten:
+
+- **Geänderte Environment-Variablen wirken erst nach einem neuen Build.** Die beiden
+  `NEXT_PUBLIC_`-Werte werden beim Bauen fest in den Code geschrieben. Also nach jeder
+  Änderung *Deployments → ⋯ → Redeploy*, den Haken bei *Use existing Build Cache*
+  entfernen.
+- **Die Commit-Adresse muss zu einem GitHub-Konto gehören.** Ohne gesetzte `user.email`
+  nimmt git etwas wie `name@MacBook-von-X.local`; GitHub kann das keinem Nutzer zuordnen
+  und Vercel blockt den Build im Hobby-Tarif mit *"could not associate the committer with a
+  GitHub user"*. Einmalig setzen:
+
+  ```bash
+  git config --global user.name "Dein Name"
+  git config --global user.email "<id>+<login>@users.noreply.github.com"
+  ```
+
 ---
 
 ## Struktur
