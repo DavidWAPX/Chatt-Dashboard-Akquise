@@ -28,13 +28,13 @@ export const TEXTFELDER: ReadonlyArray<{
     key: "used_opener",
     label: "Welche Erstnachricht hast du verwendet?",
     kurz: "Erstnachricht",
-    platzhalter: "Variante A, B oder der Wortlaut",
+    platzhalter: "Variante A, B oder deine eigene Erstnachricht einfügen",
   },
   {
     key: "search_terms",
     label: "Verwendete Suchbegriffe",
     kurz: "Suchbegriffe",
-    platzhalter: "Wonach hast du gesucht?",
+    platzhalter: "Welche Suchbegriffe/Hashtags wurden verwendet?",
   },
   {
     key: "notes",
