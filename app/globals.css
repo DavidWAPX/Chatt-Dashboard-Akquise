@@ -174,8 +174,35 @@
   }
 
   ::selection {
-    background: var(--gold-dim);
-    color: var(--gold-bright);
+    background: color-mix(in srgb, var(--gold) 42%, transparent);
+    color: var(--text-1);
+  }
+
+  /*
+   * Markieren soll Text erfassen — nicht die Oberfläche drumherum. Ohne diese
+   * Regeln zieht ein Strich über die Seite Knöpfe, Symbole, Kacheln und ganze
+   * Zeilen mit, und die Auswahl legt sich als breites Band über alles.
+   *
+   * Der Grundzustand ist "nicht markierbar"; markierbar wird gezielt, was
+   * wirklich Text trägt. Umgekehrt wäre die Liste endlos.
+   */
+  body {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  :where(p, h1, h2, h3, h4, h5, h6, li, dd, dt, td, blockquote, code, pre, figcaption),
+  :where(input, textarea),
+  :where(.skript-text, .skript-hinweis) {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
+  /* Bedienelemente sind kein Text, auch nicht der Text in ihnen. */
+  :where(button, nav, [role="tab"], [role="tablist"], th, label, svg, summary) ,
+  :where(button, nav, [role="tab"], [role="tablist"], th, label) * {
+    -webkit-user-select: none;
+    user-select: none;
   }
 
   /* Focus is visible on every interactive element, keyboard included — §6.5 */
@@ -465,9 +492,17 @@
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  -webkit-text-fill-color: transparent;
   /* Der Schein kommt per Filter, weil der Text selbst durchsichtig ist und
      ein text-shadow darum unsichtbar bliebe. */
   filter: drop-shadow(0 0 16px #d92b3659);
+}
+
+/* Beim Markieren muss die Schrift wieder sichtbar werden: Verlaufstext ist
+   durchsichtig, sonst verschwände die Überschrift im Auswahlbalken. */
+.skript-kapitel::selection {
+  -webkit-text-fill-color: var(--text-1);
+  color: var(--text-1);
 }
 
 /* Beim Draufzeigen legt sich ein zurückhaltender goldener Schein um die
