@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -33,7 +34,21 @@ const ITEMS = [
 export function PillNav({ role }: { role: UserRole }) {
   const pathname = usePathname();
   const items = ITEMS.filter((item) => !item.adminOnly || role === "admin");
-  const skriptAktiv = pathname.startsWith("/skript");
+
+  /*
+   * Der angeklickte Punkt leuchtet sofort auf, nicht erst wenn die neue Seite
+   * gerendert ist. Ohne das wirkt die Leiste beim Klicken tot, solange der
+   * Server antwortet — und genau diese Lücke fühlt sich wie Ladezeit an.
+   */
+  const [geklickt, setGeklickt] = useState<string | null>(null);
+  useEffect(() => setGeklickt(null), [pathname]);
+
+  const istAktiv = (href: string) => {
+    if (geklickt) return geklickt === href;
+    return href === "/" ? pathname === "/" : pathname.startsWith(href);
+  };
+
+  const skriptAktiv = istAktiv("/skript");
 
   return (
     /*
@@ -51,8 +66,7 @@ export function PillNav({ role }: { role: UserRole }) {
         )}
       >
         {items.map((item) => {
-          const active =
-            item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+          const active = istAktiv(item.href);
           const Icon = item.icon;
 
           return (
@@ -62,6 +76,10 @@ export function PillNav({ role }: { role: UserRole }) {
               aria-current={active ? "page" : undefined}
               aria-label={item.label}
               title={item.label}
+              onClick={() => setGeklickt(item.href)}
+              /* prefetch greift nur im fertigen Build; im Entwicklungsmodus
+                 baut Next die Zielseite grundsätzlich erst beim Klick. */
+              prefetch
               className={cn(
                 "flex h-[42px] shrink-0 items-center justify-center gap-2.5 rounded-full",
                 "px-3.5 text-[15px] font-medium tracking-normal xs:px-5",
@@ -92,6 +110,8 @@ export function PillNav({ role }: { role: UserRole }) {
           href="/skript"
           aria-current={skriptAktiv ? "page" : undefined}
           title="Chatting Skript"
+          onClick={() => setGeklickt("/skript")}
+          prefetch
           className={cn(
             "nav-tool flex h-[30px] shrink-0 items-center gap-2 rounded-full px-3.5 text-[13px] font-medium",
             skriptAktiv && "bg-[var(--blau-dim)] text-text-1",

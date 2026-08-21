@@ -22,7 +22,12 @@ const SHEET_URL =
  * re-downloaded the whole file. The parsed rows are cached here instead — a
  * fraction of the size and already in the shape the page needs.
  */
-type LeadCache = { leads: Lead[]; at: number } | null;
+type LeadCache = {
+  leads: Lead[];
+  at: number;
+  /** Läuft gerade eine Auffrischung? Verhindert ein Dutzend paralleler Abrufe. */
+  laeuft?: Promise<void>;
+} | null;
 
 /*
  * Held on globalThis, not in a module variable: Next can load this module in
@@ -33,8 +38,10 @@ type LeadCache = { leads: Lead[]; at: number } | null;
 const store = globalThis as typeof globalThis & { __leadsCache?: LeadCache };
 
 /**
- * Short on purpose: an edit in the sheet shows up within a minute on its own,
- * and immediately when Aktualisieren is pressed.
+ * Nach einer Minute gilt der Bestand als alt — aber niemand wartet deswegen.
+ * Die Seite bekommt sofort den vorhandenen Stand, die Auffrischung läuft
+ * nebenher; der nächste Aufruf sieht dann die neuen Zeilen. Vorher blockierte
+ * jeder erste Aufruf nach Ablauf der Minute rund 1,4 Sekunden lang.
  */
 const TTL_MS = 60 * 1000;
 
@@ -57,14 +64,34 @@ export function normaliseName(value: string): string {
   return value.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
-async function fetchSheet(): Promise<
-  { ok: true; leads: Lead[] } | { ok: false; reason: "unreachable" | "not-shared" }
-> {
+type SheetErgebnis =
+  | { ok: true; leads: Lead[] }
+  | { ok: false; reason: "unreachable" | "not-shared" };
+
+async function fetchSheet(): Promise<SheetErgebnis> {
   const cached = store.__leadsCache;
-  if (cached && Date.now() - cached.at < TTL_MS) {
+
+  if (cached) {
+    // Zu alt? Dann im Hintergrund nachladen und trotzdem sofort antworten.
+    if (Date.now() - cached.at >= TTL_MS && !cached.laeuft) {
+      cached.laeuft = ladeFrisch()
+        .then(() => undefined)
+        .catch(() => {
+          // Ein misslungener Abruf darf den vorhandenen Stand nicht wegwerfen.
+        })
+        .finally(() => {
+          const aktuell = store.__leadsCache;
+          if (aktuell) aktuell.laeuft = undefined;
+        });
+    }
     return { ok: true, leads: cached.leads };
   }
 
+  // Noch nichts da: dieses eine Mal muss gewartet werden.
+  return ladeFrisch();
+}
+
+async function ladeFrisch(): Promise<SheetErgebnis> {
   let csv: string;
 
   try {

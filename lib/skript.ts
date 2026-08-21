@@ -71,8 +71,10 @@ export type SkriptErgebnis =
 
 /* Wie bei der Lead-Tabelle: ein kleiner eigener Zwischenspeicher, damit nicht
    jeder Seitenaufruf 300 KB bei Google abholt, eine Änderung am Dokument aber
-   trotzdem innerhalb einer Minute sichtbar wird. */
-type Cache = { wert: SkriptErgebnis; um: number } | null;
+   trotzdem innerhalb einer Minute sichtbar wird. Nach Ablauf der Minute wird
+   der vorhandene Stand sofort ausgeliefert und nebenher aufgefrischt — sonst
+   wartet der nächste Aufruf gut 1,3 Sekunden auf Google. */
+type Cache = { wert: SkriptErgebnis; um: number; laeuft?: Promise<void> } | null;
 const store = globalThis as typeof globalThis & { __skriptCache?: Cache };
 const TTL_MS = 60 * 1000;
 
@@ -474,10 +476,26 @@ function nachbearbeiten(bloecke: SkriptBlock[]): SkriptBlock[] {
 
 async function holeDokument(): Promise<SkriptErgebnis> {
   const zwischenstand = store.__skriptCache;
-  if (zwischenstand && Date.now() - zwischenstand.um < TTL_MS) {
+
+  if (zwischenstand) {
+    if (Date.now() - zwischenstand.um >= TTL_MS && !zwischenstand.laeuft) {
+      zwischenstand.laeuft = ladeFrisch()
+        .then(() => undefined)
+        .catch(() => {
+          // Ein misslungener Abruf darf den vorhandenen Stand nicht wegwerfen.
+        })
+        .finally(() => {
+          const aktuell = store.__skriptCache;
+          if (aktuell) aktuell.laeuft = undefined;
+        });
+    }
     return zwischenstand.wert;
   }
 
+  return ladeFrisch();
+}
+
+async function ladeFrisch(): Promise<SkriptErgebnis> {
   let roh: string;
   try {
     const url = new URL(DOC_URL);
@@ -489,6 +507,7 @@ async function holeDokument(): Promise<SkriptErgebnis> {
   } catch {
     return { ok: false, grund: "nicht-erreichbar" };
   }
+
 
   // Ist das Dokument nicht freigegeben, liefert Google eine Anmeldeseite.
   if (/<title>[^<]*(Anmeldung|Sign in)[^<]*<\/title>/i.test(roh)) {

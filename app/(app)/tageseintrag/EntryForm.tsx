@@ -187,8 +187,8 @@ export function EntryForm({ profileId }: { profileId: string }) {
           {existing && !loading && (
             <p className="mt-6 flex items-start gap-3 rounded-[8px] border border-border-gold bg-surface-3 px-4 py-3 text-[14px] text-text-2">
               <Info size={16} aria-hidden="true" className="mt-0.5 shrink-0 text-gold" />
-              Für heute und {PLATFORM_LABEL[platform]} steht schon ein Eintrag —
-              Speichern aktualisiert ihn.
+              Heute wurde bereits ein Eintrag erstellt. Du kannst ihn trotzdem
+              verändern.
             </p>
           )}
 
@@ -256,7 +256,6 @@ export function EntryForm({ profileId }: { profileId: string }) {
           Workreport Verlauf
           <ArrowRight size={14} aria-hidden="true" />
         </Link>
-        .
       </p>
     </>
   );
