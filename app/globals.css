@@ -470,42 +470,19 @@
   filter: drop-shadow(0 0 16px #d92b3659);
 }
 
-/* Beim Draufzeigen glimmt hinter dem Knopf goldenes Licht auf.
-   Es liegt als weich ausgeblendete Fläche hinter dem Element, nicht als
-   harter Schatten am Rand — dadurch wirkt es wie eine Lichtquelle dahinter
-   statt wie eine aufgemalte Kontur. */
+/* Beim Draufzeigen legt sich ein zurückhaltender goldener Schein um die
+   Kante — sichtbar, aber ohne Lichtkegel: die Fläche dahinter bleibt schwarz,
+   nur der Rand glimmt. */
 .gold-ghost-glow {
-  position: relative;
-  isolation: isolate;
   box-shadow: none;
-}
-
-.gold-ghost-glow::before {
-  content: "";
-  position: absolute;
-  inset: -16px;
-  z-index: -1;
-  border-radius: 18px;
-  background: radial-gradient(
-    55% 130% at 50% 50%,
-    #b68f44e6 0%,
-    #94733799 40%,
-    #94733700 74%
-  );
-  filter: blur(16px);
-  opacity: 0;
-  /* Länger als die übliche Hover-Dauer: ein Aufglimmen darf man sehen. */
-  transition: opacity 260ms var(--ease-ref);
-  pointer-events: none;
-}
-
-.gold-ghost-glow:hover:not(:disabled)::before {
-  opacity: 1;
+  transition:
+    box-shadow 200ms var(--ease-ref),
+    border-color var(--dur) var(--ease-ref),
+    color var(--dur) var(--ease-ref);
 }
 
 .gold-ghost-glow:hover:not(:disabled) {
-  background-color: var(--gold-dim);
-  box-shadow: 0 0 26px #9473374d;
+  box-shadow: 0 0 14px #94733759;
 }
 
 /* §9 Zugänglichkeit — no transitions, no chart reveal */
