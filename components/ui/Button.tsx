@@ -71,6 +71,18 @@ interface ButtonLinkProps extends AnchorHTMLAttributes<HTMLAnchorElement> {
   children: ReactNode;
 }
 
+/*
+ * Die Hover-Regeln der Varianten hängen an `enabled:` — und `:enabled` trifft
+ * auf ein <a> nicht zu, ein Link ist nie "enabled". Ohne diese Entsprechung
+ * bliebe ein Link-Button beim Draufzeigen stumm. Ein Link kennt umgekehrt
+ * keinen Deaktiviert-Zustand, die Absicherung entfällt hier also.
+ */
+const LINK_HOVER: Record<Variant, string> = {
+  gold: "hover:border-gold-bright hover:text-gold-bright",
+  neutral: "hover:bg-surface-2",
+  danger: "hover:bg-[var(--danger-hover)]",
+};
+
 /**
  * Ein Link, der aussieht wie ein Button — gleiche Größen, gleiche Farben,
  * gleiches Verhalten, weil er sich BASE und VARIANTS mit dem Button teilt.
@@ -80,7 +92,11 @@ interface ButtonLinkProps extends AnchorHTMLAttributes<HTMLAnchorElement> {
 export const ButtonLink = forwardRef<HTMLAnchorElement, ButtonLinkProps>(
   function ButtonLink({ variant = "gold", icon, children, className, ...rest }, ref) {
     return (
-      <a ref={ref} className={cn(BASE, VARIANTS[variant], className)} {...rest}>
+      <a
+        ref={ref}
+        className={cn(BASE, VARIANTS[variant], LINK_HOVER[variant], className)}
+        {...rest}
+      >
         {icon}
         <span>{children}</span>
       </a>
