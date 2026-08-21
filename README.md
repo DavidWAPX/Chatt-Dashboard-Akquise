@@ -82,12 +82,21 @@ Hand angelegt, alle weiteren Nutzer danach über die Oberfläche unter *Admin �
    *Auto Confirm User* aktivieren.
 2. Die User-ID kopieren und im SQL Editor ausführen:
 
-```sql
-insert into profiles (id, email, name, role)
-values ('<user-id>', '<email>', '<Name>', 'admin');
+Das geht **nicht** über den SQL-Editor oder den Table Editor: Die Regeln auf `profiles`
+erlauben das Anlegen nur einem Admin, und den gibt es beim frischen Projekt noch nicht
+(*"new row violates row-level security policy"*). Der Service-Schlüssel steht über diesen
+Regeln — dafür gibt es das Skript:
+
+```bash
+node --env-file=.env.local scripts/ersten-admin-anlegen.mjs <email> "<Name>"
 ```
 
-Danach unter `/login` mit dieser E-Mail anmelden.
+Es sucht den Benutzer über die Admin-Schnittstelle, legt sein Profil mit `role = 'admin'`
+an und lässt sich gefahrlos mehrfach ausführen. Danach unter `/login` mit dieser E-Mail
+anmelden; alle weiteren Nutzer entstehen dann bequem über *Admin → Benutzer verwalten*.
+
+Der Name muss zeichengenau so in der Spalte **Lead von** der Google-Tabelle stehen, sonst
+bleibt *Meine Leads* leer.
 
 ---
 
