@@ -1,7 +1,7 @@
 "use client";
 
 import { forwardRef } from "react";
-import type { ButtonHTMLAttributes, ReactNode } from "react";
+import type { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
 type Variant = "gold" | "neutral" | "danger";
@@ -64,6 +64,29 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
     </button>
   );
 });
+
+interface ButtonLinkProps extends AnchorHTMLAttributes<HTMLAnchorElement> {
+  variant?: Variant;
+  icon?: ReactNode;
+  children: ReactNode;
+}
+
+/**
+ * Ein Link, der aussieht wie ein Button — gleiche Größen, gleiche Farben,
+ * gleiches Verhalten, weil er sich BASE und VARIANTS mit dem Button teilt.
+ * Ein <a> ist hier richtig: das Ziel liegt außerhalb der App, und Rechtsklick,
+ * Mittelklick und "Link kopieren" sollen funktionieren.
+ */
+export const ButtonLink = forwardRef<HTMLAnchorElement, ButtonLinkProps>(
+  function ButtonLink({ variant = "gold", icon, children, className, ...rest }, ref) {
+    return (
+      <a ref={ref} className={cn(BASE, VARIANTS[variant], className)} {...rest}>
+        {icon}
+        <span>{children}</span>
+      </a>
+    );
+  },
+);
 
 interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   /** Required — icon-only controls must be announced. */

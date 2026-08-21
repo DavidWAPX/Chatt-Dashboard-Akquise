@@ -4,6 +4,7 @@ import { getSessionProfile } from "@/lib/supabase/server";
 import { getSkript, SKRIPT_DOC_EDIT_URL } from "@/lib/skript";
 import { SkriptAbschnitte } from "@/components/skript/SkriptAbschnitte";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { ButtonLink } from "@/components/ui/Button";
 
 /* Die Seite wird bei jedem Aufruf serverseitig gerendert; der Abruf beim
    Dokument selbst ist eine Minute lang zwischengespeichert (lib/skript.ts).
@@ -61,14 +62,14 @@ export default async function SkriptPage() {
             </p>
           </div>
 
-          <a
+          <ButtonLink
             href={SKRIPT_DOC_EDIT_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="btn-gold shrink-0"
+            className="shrink-0"
           >
             Skript in Google Docs öffnen
-          </a>
+          </ButtonLink>
         </div>
 
         <p className="mt-5 flex flex-wrap items-center gap-2 border-t border-border-soft pt-4 text-[13px] text-text-3">
