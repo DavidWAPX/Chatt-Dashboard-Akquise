@@ -1,10 +1,14 @@
 -- ===========================================================================
 -- Remote Chatter Dashboard — initial schema
+--
+-- Im SQL-Editor des Supabase-Projekts einmal komplett ausführen. Legt genau
+-- das an, was die App benutzt: Profile, Einträge, Rechte. Keine Gruppen, keine
+-- Kennzahlen, die es in der Oberfläche nicht mehr gibt.
 -- ===========================================================================
 
 -- Roles --------------------------------------------------------------------
 create type user_role as enum ('user', 'admin');
-create type platform  as enum ('tiktok', 'instagram', 'x', 'facebook');
+create type platform  as enum ('tiktok', 'instagram', 'facebook');
 
 -- User profile (1:1 with auth.users) ---------------------------------------
 create table profiles (
@@ -15,19 +19,6 @@ create table profiles (
   created_at timestamptz not null default now()
 );
 
--- User groups --------------------------------------------------------------
-create table groups (
-  id         uuid primary key default gen_random_uuid(),
-  name       text not null unique,
-  created_at timestamptz not null default now()
-);
-
-create table profile_groups (
-  profile_id uuid not null references profiles(id) on delete cascade,
-  group_id   uuid not null references groups(id)   on delete cascade,
-  primary key (profile_id, group_id)
-);
-
 -- Daily entries ------------------------------------------------------------
 create table entries (
   id              uuid primary key default gen_random_uuid(),
@@ -35,11 +26,8 @@ create table entries (
   entry_date      date not null,
   platform        platform not null,
   first_messages  integer not null default 0 check (first_messages  >= 0),
-  conversations   integer not null default 0 check (conversations   >= 0),
   followups       integer not null default 0 check (followups       >= 0),
   appointments    integer not null default 0 check (appointments    >= 0),
-  qualified       integer not null default 0 check (qualified       >= 0),
-  unqualified     integer not null default 0 check (unqualified     >= 0),
   created_at      timestamptz not null default now(),
   updated_at      timestamptz not null default now(),
   -- One entry per user, date and platform. Saving is an upsert on this key,
@@ -74,8 +62,6 @@ set search_path = public as $$
 $$;
 
 alter table profiles      enable row level security;
-alter table groups        enable row level security;
-alter table profile_groups enable row level security;
 alter table entries       enable row level security;
 
 -- profiles: everyone reads their own row, admins read all, only admins write
@@ -104,35 +90,3 @@ create policy entries_update_own on entries
 
 create policy entries_delete_own on entries
   for delete using (profile_id = auth.uid());
-
--- groups: every signed-in user reads, only admins write
-create policy groups_select on groups
-  for select to authenticated using (true);
-
-create policy groups_insert_admin on groups
-  for insert to authenticated with check (is_admin());
-
-create policy groups_update_admin on groups
-  for update to authenticated using (is_admin()) with check (is_admin());
-
-create policy groups_delete_admin on groups
-  for delete to authenticated using (is_admin());
-
-create policy profile_groups_select on profile_groups
-  for select to authenticated using (true);
-
-create policy profile_groups_insert_admin on profile_groups
-  for insert to authenticated with check (is_admin());
-
-create policy profile_groups_update_admin on profile_groups
-  for update to authenticated using (is_admin()) with check (is_admin());
-
-create policy profile_groups_delete_admin on profile_groups
-  for delete to authenticated using (is_admin());
-
--- ===========================================================================
--- Seed
--- ===========================================================================
-
-insert into groups (name) values ('Gruppe 1'), ('Gruppe 2')
-  on conflict (name) do nothing;

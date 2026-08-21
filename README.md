@@ -32,9 +32,8 @@ Unter [supabase.com](https://supabase.com) ein Projekt erstellen. Die drei Werte
 ### 2 — Migration einspielen
 
 Den Inhalt von `supabase/migrations/0001_init.sql` im *SQL Editor* des Supabase-Dashboards
-ausführen. Legt Tabellen, RLS-Policies und den `updated_at`-Trigger an. Die Tabellen
-`groups`/`profile_groups` legt die Migration mit an, die App benutzt sie aber nicht mehr —
-Benutzergruppen wurden entfernt.
+ausführen. Legt genau die Tabellen an, die die App benutzt (`profiles`, `entries`), dazu
+die RLS-Policies und den `updated_at`-Trigger.
 
 Alternativ mit der Supabase CLI:
 
