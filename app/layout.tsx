@@ -20,7 +20,11 @@ const outfit = Outfit({
 
 export const metadata: Metadata = {
   title: "Remote Chatter Dashboard",
-  description: "Tracking für Kaltakquise auf TikTok, Instagram, X und Facebook.",
+  description: "Tracking auf TikTok, Instagram und Facebook.",
+  openGraph: {
+    title: "Remote Chatter Dashboard",
+    description: "Tracking auf TikTok, Instagram und Facebook.",
+  },
 };
 
 export const viewport: Viewport = {
